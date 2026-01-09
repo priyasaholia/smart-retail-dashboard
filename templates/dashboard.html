@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<h1>Retail Dashboard</h1>
+
+<!-- KPI CARDS -->
+<div class="cards">
+    <div class="card">
+        <h3>Total Products</h3>
+        <p>0</p>
+    </div>
+
+    <div class="card">
+        <h3>Low Stock</h3>
+        <p>0</p>
+    </div>
+
+    <div class="card">
+        <h3>Categories</h3>
+        <p>0</p>
+    </div>
+</div>
+
+<hr>
+
+<!-- INVENTORY TABLE -->
+<h2>Inventory Overview</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Product</th>
+        <th>Category</th>
+        <th>Stock</th>
+        <th>Status</th>
+    </tr>
+    <tr>
+        <td>Sample Product</td>
+        <td>Sample Category</td>
+        <td>12</td>
+        <td>OK</td>
+    </tr>
+</table>
+
+{% endblock %}
