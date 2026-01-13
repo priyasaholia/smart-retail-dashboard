@@ -43,5 +43,22 @@
         <td>OK</td>
     </tr>
 </table>
+<hr>
+
+<h2>Recent Alerts</h2>
+
+{% if alerts %}
+    <ul>
+        {% for alert in alerts %}
+            <li>
+                <strong>{{ alert.message }}</strong>
+                <small>({{ alert.source }} | {{ alert.created_at }})</small>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No alerts yet.</p>
+{% endif %}
+
 
 {% endblock %}
