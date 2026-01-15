@@ -48,17 +48,30 @@
 <h2>Recent Alerts</h2>
 
 {% if alerts %}
-    <ul>
-        {% for alert in alerts %}
-            <li>
-                <strong>{{ alert.message }}</strong>
-                <small>({{ alert.source }} | {{ alert.created_at }})</small>
-            </li>
-        {% endfor %}
-    </ul>
+  {% for alert in alerts %}
+    <div class="alert-card" style="margin-bottom: 14px; padding: 12px; border: 1px solid #ddd;">
+      
+      <strong>{{ alert.message }}</strong><br>
+
+      <small>
+        Source: {{ alert.source }} |
+        {{ alert.created_at }}
+      </small><br>
+
+      {% if alert.priority %}
+        <strong>Priority:</strong> {{ alert.priority|title }}<br>
+      {% endif %}
+
+      {% if alert.ai_explanation %}
+        <em>{{ alert.ai_explanation }}</em>
+      {% endif %}
+
+    </div>
+  {% endfor %}
 {% else %}
-    <p>No alerts yet.</p>
+  <p>No alerts yet.</p>
 {% endif %}
+
 
 
 {% endblock %}

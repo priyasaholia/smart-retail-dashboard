@@ -3,6 +3,8 @@ from .models import Product, Alert
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from .ai_engine import generate_alert_intelligence
+
 
 
 def home(request):
@@ -29,13 +31,19 @@ def create_alert_api(request):
 
             if not message:
                 return JsonResponse(
-                    {"error": "Message is required"},
+                    {"error": "message is required"},
                     status=400
                 )
 
+            # 🔥 THIS IS WHERE AI LOGIC GOES
+            priority, explanation = generate_alert_intelligence(message)
+
+            # 🔥 ALERT CREATION WITH INTELLIGENCE
             alert = Alert.objects.create(
                 message=message,
-                source=source
+                source=source,
+                priority=priority,
+                ai_explanation=explanation
             )
 
             return JsonResponse(
@@ -56,3 +64,4 @@ def create_alert_api(request):
         {"error": "Only POST method allowed"},
         status=405
     )
+

@@ -7,11 +7,26 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
 class Alert(models.Model):
     message = models.CharField(max_length=255)
     source = models.CharField(max_length=100, default="system")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    priority = models.CharField(
+        max_length=20,
+        choices=[
+            ("critical", "Critical"),
+            ("medium", "Medium"),
+            ("low", "Low"),
+        ],
+        default="medium"
+    )
+
+    ai_explanation = models.TextField(blank=True, null=True)
+
     resolved = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.message} ({self.source})"
+        return self.message
+
