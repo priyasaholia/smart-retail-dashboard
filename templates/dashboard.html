@@ -1,77 +1,541 @@
-{% extends "base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Intelligence Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block content %}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(225deg, #887c59 0%, #10267e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-<h1>Retail Dashboard</h1>
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
-<!-- KPI CARDS -->
-<div class="cards">
-    <div class="card">
-        <h3>Total Products</h3>
-        <p>0</p>
+        .header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        /* Daily Intelligence Hero Section */
+        .intelligence-hero {
+            background: {% if needs_attention %}linear-gradient(135deg, #f56565 0%, #ed8936 100%){% else %}linear-gradient(135deg, #887c59 0%, #38b2ac 100%){% endif %};
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            margin-bottom: 25px;
+        }
+
+        .intelligence-hero h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            opacity: 0.95;
+        }
+
+        .intelligence-hero .summary {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .intelligence-hero .insight {
+            font-size: 16px;
+            opacity: 0.9;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border-left: 4px solid rgba(255,255,255,0.5);
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .kpi-card .label {
+            color: #718096;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .kpi-card .value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .kpi-card .subtext {
+            color: #a0aec0;
+            font-size: 13px;
+        }
+
+        .kpi-card.critical .value { color: #f56565; }
+        .kpi-card.warning .value { color: #ed8936; }
+        .kpi-card.success .value { color: #48bb78; }
+        .kpi-card.info .value { color: #667eea; }
+
+        /* Top Concerns Section */
+        .concerns-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .concerns-section h3 {
+            color: #2d3748;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .concern-item {
+            padding: 15px;
+            border-left: 4px solid #e2e8f0;
+            margin-bottom: 12px;
+            background: #f7fafc;
+            border-radius: 6px;
+        }
+
+        .concern-item.critical { border-left-color: #f56565; background: #fff5f5; }
+        .concern-item.medium { border-left-color: #ed8936; background: #fffaf0; }
+
+        .concern-item .message {
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .concern-item .meta {
+            color: #718096;
+            font-size: 12px;
+        }
+
+        /* Alerts Section */
+        .alerts-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .alerts-section h3 {
+            color: #2d3748;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .alert-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+
+        .alert-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+
+        .alert-card.critical {
+            border-left: 5px solid #f56565;
+            background: #f4c3c3;
+        }
+
+        .alert-card.medium {
+            border-left: 5px solid #ed8936;
+            background: #f7efdf;
+        }
+
+        .alert-card.low {
+            border-left: 5px solid #4299e1;
+            background: #dbedf6;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .alert-message {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 15px;
+        }
+
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-badge.critical {
+            background: #ed0c0c;
+            color: white;
+        }
+
+        .priority-badge.medium {
+            background: #eb7616;
+            color: white;
+        }
+
+        .priority-badge.low {
+            background: #95c8f2;
+            color: white;
+        }
+
+        .alert-explanation {
+            color: #4a5568;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .alert-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #a0aec0;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .refresh-btn {
+            background: #596ce8;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 20px;
+        }
+
+        .refresh-btn:hover {
+            background: #4451c3;
+        }
+
+        /* Trend indicator */
+        .trend-indicator {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .trend-indicator.high { background: #fed7d7; color: #c53030; }
+        .trend-indicator.elevated { background: #feebc8; color: #c05621; }
+        .trend-indicator.normal { background: #c6f6d5; color: #276749; }
+        .trend-indicator.low { background: #bee3f8; color: #2c5282; }
+        /* Dashboard Grid Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2.6fr 0.9fr;
+    gap: 20px;
+    align-items: start;
+}
+
+
+/* Main Intelligence Area */
+.main-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Alerts Sidebar */
+.alerts-panel {
+    position: sticky;
+    top: 20px;
+}
+
+/* Make alerts compact in sidebar */
+.alerts-panel .alert-card {
+    padding: 12px;
+    font-size: 12.5px;
+}
+
+
+/* Reduce alert padding for sidebar */
+.alerts-panel .alert-card {
+    padding: 14px;
+    font-size: 13px;
+}
+
+/* Prevent alerts from overpowering */
+.alerts-panel h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+/* Alerts toggle button */
+.alerts-toggle {
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.alerts-toggle button {
+    background: #4a5568;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.alerts-toggle button:hover {
+    background: #2d3748;
+}
+
+/* Sliding Alerts Panel */
+
+.alerts-panel {
+    position: sticky;
+    top: 20px;
+    transition: all 0.35s ease;
+}
+
+/* Default expanded state */
+.alerts-panel-inner {
+    width: 100%;
+    transition: transform 0.35s ease, opacity 0.25s ease;
+}
+
+/* Collapsed state */
+.alerts-collapsed .alerts-panel-inner {
+    transform: translateX(110%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🛍️ Retail Intelligence Dashboard</h1>
+            <p>AI-Driven Decision Support for Smart Retail Management</p>
+        </div>
+
+
+        <!-- Daily Intelligence Hero -->
+    <div class="intelligence-hero">
+     <h2>📊 What Matters Today?</h2>
+
+     <div class="summary">{{ daily_summary }}</div>
+
+        <div class="insight">
+        <strong>💡 Executive Insight:</strong> {{ daily_insight }}
+        </div>
+
+    {% if recommended_actions %}
+    <div class="actions-block" style="
+        margin-top: 16px;
+        background: rgba(255,255,255,0.9);
+        padding: 14px;
+        border-radius: 10px;
+        color: #2d3748;
+    ">
+        <strong>✅ Recommended Actions Today:</strong>
+        <ul style="margin-top: 10px; padding-left: 20px;">
+            {% for action in recommended_actions %}
+                <li style="margin-bottom: 6px;">{{ action }}</li>
+            {% endfor %}
+        </ul>
     </div>
-
-    <div class="card">
-        <h3>Low Stock</h3>
-        <p>0</p>
-    </div>
-
-    <div class="card">
-        <h3>Categories</h3>
-        <p>0</p>
-    </div>
+    {% endif %}
 </div>
 
-<hr>
+<!-- Main Dashboard Grid -->
+<div class="dashboard-grid">
 
-<!-- INVENTORY TABLE -->
-<h2>Inventory Overview</h2>
+    <!-- LEFT: Intelligence & KPIs -->
+    <div class="main-panel">
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Product</th>
-        <th>Category</th>
-        <th>Stock</th>
-        <th>Status</th>
-    </tr>
-    <tr>
-        <td>Sample Product</td>
-        <td>Sample Category</td>
-        <td>12</td>
-        <td>OK</td>
-    </tr>
-</table>
-<hr>
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card critical">
+                <div class="label">Critical Alerts</div>
+                <div class="value">{{ critical_unresolved }}</div>
+                <div class="subtext">Require immediate action</div>
+            </div>
 
-<h2>Recent Alerts</h2>
+            <div class="kpi-card warning">
+                <div class="label">Today's Alerts</div>
+                <div class="value">{{ total_alerts_today }}</div>
+                <div class="subtext">
+                    <span class="trend-indicator {{ trend }}">{{ trend|upper }}</span>
+                    {{ average_daily }}/day avg
+                </div>
+            </div>
 
-{% if alerts %}
-  {% for alert in alerts %}
-    <div class="alert-card" style="margin-bottom: 14px; padding: 12px; border: 1px solid #ddd;">
-      
-      <strong>{{ alert.message }}</strong><br>
+            <div class="kpi-card info">
+                <div class="label">Total Unresolved</div>
+                <div class="value">{{ total_unresolved }}</div>
+                <div class="subtext">Across all priorities</div>
+            </div>
 
-      <small>
-        Source: {{ alert.source }} |
-        {{ alert.created_at }}
-      </small><br>
+            <div class="kpi-card success">
+                <div class="label">Resolved Today</div>
+                <div class="value">{{ resolved_today }}</div>
+                <div class="subtext">Issues closed</div>
+            </div>
+        </div>
 
-      {% if alert.priority %}
-        <strong>Priority:</strong> {{ alert.priority|title }}<br>
-      {% endif %}
+        <!-- Top Priority Concerns -->
+        {% if top_concerns %}
+        <div class="concerns-section">
+            <h3>🔥 Top Priority Concerns</h3>
+            {% for concern in top_concerns %}
+            <div class="concern-item {{ concern.priority }}">
+                <div class="message">{{ concern.message }}</div>
+                <div class="meta">
+                    <span style="text-transform: uppercase; font-weight: 600;">
+                        {{ concern.priority }}
+                    </span>
+                    • {{ concern.created_at|date:"g:i A" }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
-      {% if alert.ai_explanation %}
-        <em>{{ alert.ai_explanation }}</em>
-      {% endif %}
+    </div> <!-- end main-panel -->
 
-    </div>
-  {% endfor %}
-{% else %}
-  <p>No alerts yet.</p>
-{% endif %}
+    <!-- RIGHT: Alerts Panel -->
+    <div class="alerts-panel">
+
+        <!-- Toggle Button -->
+        <div class="alerts-toggle">
+            <button onclick="toggleAlerts()">📌 Alerts</button>
+        </div>
+
+        <!-- Sliding Alerts Content -->
+        <div class="alerts-panel-inner">
+
+            <div class="alerts-section">
+                <h3>📋 Active Alerts (Latest 20)</h3>
+
+                {% if alerts %}
+                    {% for alert in alerts %}
+                    <div class="alert-card {{ alert.priority }}">
+                        <div class="alert-header">
+                            <div class="alert-message">{{ alert.message }}</div>
+                            <span class="priority-badge {{ alert.priority }}">
+                                {{ alert.priority }}
+                            </span>
+                        </div>
+
+                        {% if alert.ai_explanation %}
+                        <div class="alert-explanation">
+                            <strong>🤖 AI Analysis:</strong> {{ alert.ai_explanation }}
+                        </div>
+                        {% endif %}
+
+                        <div class="alert-meta">
+                            <span>Source: {{ alert.source }}</span>
+                            <span>{{ alert.created_at|date:"M d, Y • g:i A" }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <h3>All Clear! 🎉</h3>
+                        <p>No active alerts.</p>
+                    </div>
+                {% endif %}
+
+                <button class="refresh-btn" onclick="location.reload()">
+                    🔄 Refresh Dashboard
+                </button>
+            </div>
+
+        </div> <!-- end alerts-panel-inner -->
+
+    </div> <!-- end alerts-panel -->
+
+</div> <!-- end dashboard-grid -->
+</div> <!-- end container -->
+   <script>
+function toggleAlerts() {
+    document.querySelector('.alerts-panel')
+        .classList.toggle('alerts-collapsed');
+}
+</script>
 
 
-
-{% endblock %}
+</body>
+</html>
