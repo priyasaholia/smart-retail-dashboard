@@ -2,6 +2,9 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from .forms import NotebookEntryForm
+from django.shortcuts import redirect
+
 
 from .models import Alert
 from .ai_engine import (
@@ -20,6 +23,9 @@ from .ai_engine import generate_daily_intelligence
 from .models import Alert
 
 def dashboard(request):
+    from .ai_engine import generate_financial_trend_alert
+    generate_financial_trend_alert()
+
     alerts = Alert.objects.filter(resolved=False).order_by("-created_at")[:20]
 
     daily_intelligence = generate_daily_intelligence()
@@ -32,6 +38,31 @@ def dashboard(request):
     }
 
     return render(request, "dashboard.html", context)
+def add_notebook_entry(request):
+    """
+    Phase 4.2 — User-facing notebook entry creation
+    """
+
+    if request.method == "POST":
+        form = NotebookEntryForm(request.POST)
+        if form.is_valid():
+          entry = form.save()
+
+         # Phase 4.4 — Financial anomaly check
+        from .ai_engine import generate_financial_alert
+        generate_financial_alert(entry)
+
+        return redirect("core:dashboard")
+
+    else:
+        form = NotebookEntryForm()
+
+    return render(
+        request,
+        "add_notebook_entry.html",
+        {"form": form}
+    )
+
 
 
 @csrf_exempt

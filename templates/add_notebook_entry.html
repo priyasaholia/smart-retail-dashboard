@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Notebook Entry</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f7fafc;
+            padding: 40px;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+        }
+        h2 {
+            margin-bottom: 16px;
+        }
+        button {
+            background: #4a5568;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📓 Add Notebook Entry</h2>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <button type="submit">Save Entry</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,5 +1,7 @@
 from datetime import date
 from .models import Alert
+from .models import NotebookEntry
+
 def generate_alert_intelligence(message):
     text = message.lower()
 
@@ -206,3 +208,185 @@ def generate_alert_trends(days=7):
         "risk_level": risk_level,
         "recurring_patterns": recurring_patterns,
     }
+from django.db.models import Avg, Min, Max
+from django.utils.timezone import now
+from datetime import timedelta
+
+def generate_financial_baseline(days=14):
+    """
+    Phase 4.3 — Financial Baseline Computation
+    Learns what 'normal' looks like from notebook data.
+    """
+
+    since = now() - timedelta(days=days)
+
+    entries = NotebookEntry.objects.filter(
+        created_at__gte=since,
+        amount__isnull=False
+    )
+
+    if not entries.exists():
+        return {
+            "baseline_summary": "Not enough financial data to establish a baseline yet.",
+            "baseline": {}
+        }
+
+    baseline = {}
+
+    for entry_type in ["expense", "sale", "purchase"]:
+        subset = entries.filter(entry_type=entry_type)
+
+        if subset.exists():
+            baseline[entry_type] = {
+                "average": round(subset.aggregate(Avg("amount"))["amount__avg"], 2),
+                "min": round(subset.aggregate(Min("amount"))["amount__min"], 2),
+                "max": round(subset.aggregate(Max("amount"))["amount__max"], 2),
+                "count": subset.count(),
+            }
+
+    baseline_summary = (
+        "Financial baseline established using recent notebook activity. "
+        "The system now understands normal spending and sales patterns."
+    )
+
+    return {
+        "baseline_summary": baseline_summary,
+        "baseline": baseline
+    }
+def detect_financial_anomaly(entry):
+    """
+    Phase 4.4 — Financial Anomaly Detection
+    Compares a notebook entry against learned baseline
+    """
+
+    baseline_data = generate_financial_baseline()
+
+    baseline = baseline_data.get("baseline", {})
+    entry_type = entry.entry_type
+    amount = entry.amount
+
+    if not baseline or entry_type not in baseline:
+        return None  # Not enough context to judge
+
+    avg = baseline[entry_type]["average"]
+
+    # Define thresholds
+    if entry_type in ["expense", "purchase"]:
+        if amount > 1.5 * avg:
+            return {
+                "type": "high_expense",
+                "message": (
+                    f"{entry_type.capitalize()} of ₹{amount} is significantly "
+                    f"higher than the normal average of ₹{avg}."
+                ),
+                "priority": "medium"
+            }
+
+    if entry_type == "sale":
+        if amount < 0.6 * avg:
+            return {
+                "type": "low_sale",
+                "message": (
+                    f"Sale of ₹{amount} is significantly lower than the "
+                    f"normal average of ₹{avg}."
+                ),
+                "priority": "medium"
+            }
+
+    return None
+def generate_financial_alert(entry):
+    """
+    Converts financial anomalies into system alerts
+    """
+
+    anomaly = detect_financial_anomaly(entry)
+
+    if not anomaly:
+        return None
+
+    priority, explanation = generate_alert_intelligence(anomaly["message"])
+
+    alert = Alert.objects.create(
+        message=anomaly["message"],
+        source="financial_notebook",
+        priority=priority,
+        ai_explanation=explanation
+    )
+
+    return alert
+def generate_financial_trends(days=14):
+    """
+    Phase 4.5 — Financial Trend Intelligence
+    Detects persistent financial risk patterns over time.
+    """
+
+    baseline_data = generate_financial_baseline(days=days)
+    baseline = baseline_data.get("baseline", {})
+
+    if not baseline:
+        return {
+            "financial_trend_summary": "Not enough financial data to detect trends yet.",
+            "financial_risk_level": "low",
+        }
+
+    from django.utils.timezone import now
+    from datetime import timedelta
+
+    recent_since = now() - timedelta(days=3)
+    recent_entries = NotebookEntry.objects.filter(
+        created_at__gte=recent_since,
+        amount__isnull=False,
+        entry_type="expense"
+    )
+
+    if not recent_entries.exists():
+        return {
+            "financial_trend_summary": "No recent financial anomalies detected.",
+            "financial_risk_level": "normal",
+        }
+
+    recent_avg = recent_entries.aggregate(Avg("amount"))["amount__avg"]
+    baseline_avg = baseline.get("expense", {}).get("average")
+
+    if not baseline_avg:
+        return {
+            "financial_trend_summary": "Insufficient baseline for expense trends.",
+            "financial_risk_level": "low",
+        }
+
+    # Persistent overspending detection
+    if recent_avg > 1.3 * baseline_avg:
+        return {
+            "financial_trend_summary": (
+                "Expenses have been consistently higher than normal in recent days. "
+                "This suggests ongoing overspending rather than a one-time anomaly."
+            ),
+            "financial_risk_level": "elevated",
+        }
+
+    return {
+        "financial_trend_summary": "Expense patterns remain within expected ranges.",
+        "financial_risk_level": "normal",
+    }
+def generate_financial_trend_alert():
+    """
+    Converts financial trend risks into system alerts.
+    """
+
+    trend = generate_financial_trends()
+
+    if trend["financial_risk_level"] != "elevated":
+        return None
+
+    priority, explanation = generate_alert_intelligence(
+        trend["financial_trend_summary"]
+    )
+
+    alert = Alert.objects.create(
+        message=trend["financial_trend_summary"],
+        source="financial_trends",
+        priority=priority,
+        ai_explanation=explanation
+    )
+
+    return alert
