@@ -418,6 +418,32 @@
     </div>
     {% endif %}
 </div>
+<!-- Trend & Pattern Intelligence -->
+<div class="concerns-section">
+    <h3>📈 Trend Intelligence</h3>
+
+    <p><strong>System Insight:</strong> {{ trend_summary }}</p>
+
+    <p>
+        <strong>Risk Level:</strong>
+        <span class="trend-indicator {{ risk_level }}">
+            {{ risk_level|upper }}
+        </span>
+    </p>
+
+    {% if recurring_patterns %}
+        <p style="margin-top:12px;"><strong>Recurring Issues:</strong></p>
+        <ul>
+            {% for item in recurring_patterns %}
+                <li>
+                    "{{ item.issue }}" occurred {{ item.count }} times recently
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No repeating issues detected yet.</p>
+    {% endif %}
+</div>
 
 <!-- Main Dashboard Grid -->
 <div class="dashboard-grid">

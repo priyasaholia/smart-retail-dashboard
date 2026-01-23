@@ -4,7 +4,12 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 from .models import Alert
-from .ai_engine import generate_alert_intelligence, generate_daily_intelligence
+from .ai_engine import (
+    generate_alert_intelligence,
+    generate_daily_intelligence,
+    generate_alert_trends,
+)
+
 
 
 def home(request):
@@ -17,11 +22,13 @@ from .models import Alert
 def dashboard(request):
     alerts = Alert.objects.filter(resolved=False).order_by("-created_at")[:20]
 
-    intelligence = generate_daily_intelligence()
+    daily_intelligence = generate_daily_intelligence()
+    trend_intelligence = generate_alert_trends()
 
     context = {
         "alerts": alerts,
-        **intelligence,
+        **daily_intelligence,
+        **trend_intelligence,
     }
 
     return render(request, "dashboard.html", context)
