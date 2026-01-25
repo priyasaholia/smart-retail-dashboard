@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(225deg, #887c59 0%, #10267e 100%);
+            background: linear-gradient(135deg, #0f1f3f 0%, #1a3a52 50%, #2d5a7b 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -45,7 +44,7 @@
 
         /* Daily Intelligence Hero Section */
         .intelligence-hero {
-            background: {% if needs_attention %}linear-gradient(135deg, #f56565 0%, #ed8936 100%){% else %}linear-gradient(135deg, #887c59 0%, #38b2ac 100%){% endif %};
+            background: {% if needs_attention %}linear-gradient(135deg, #f56565 0%, #ed8936 100%){% else %}linear-gradient(135deg, #596ce8 0%, #4451c3 100%){% endif %};
             color: white;
             padding: 30px;
             border-radius: 12px;
@@ -297,92 +296,127 @@
         .trend-indicator.elevated { background: #feebc8; color: #c05621; }
         .trend-indicator.normal { background: #c6f6d5; color: #276749; }
         .trend-indicator.low { background: #bee3f8; color: #2c5282; }
+
         /* Dashboard Grid Layout */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: 2.6fr 0.9fr;
-    gap: 20px;
-    align-items: start;
-}
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2.6fr 0.9fr;
+            gap: 20px;
+            align-items: start;
+        }
 
+        /* Main Intelligence Area */
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
 
-/* Main Intelligence Area */
-.main-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
+        /* Alerts Sidebar - Now properly sticky */
+        .alerts-panel {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
 
-/* Alerts Sidebar */
-.alerts-panel {
-    position: sticky;
-    top: 20px;
-}
+        /* Make alerts compact in sidebar */
+        .alerts-panel .alert-card {
+            padding: 12px;
+            font-size: 12.5px;
+        }
 
-/* Make alerts compact in sidebar */
-.alerts-panel .alert-card {
-    padding: 12px;
-    font-size: 12.5px;
-}
+        /* Reduce alert padding for sidebar */
+        .alerts-panel .alert-card {
+            padding: 14px;
+            font-size: 13px;
+        }
 
+        /* Prevent alerts from overpowering */
+        .alerts-panel h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
 
-/* Reduce alert padding for sidebar */
-.alerts-panel .alert-card {
-    padding: 14px;
-    font-size: 13px;
-}
+        /* Alerts toggle button */
+        .alerts-toggle {
+            text-align: right;
+            margin-bottom: 10px;
+        }
 
-/* Prevent alerts from overpowering */
-.alerts-panel h3 {
-    font-size: 16px;
-    margin-bottom: 12px;
-}
-/* Alerts toggle button */
-.alerts-toggle {
-    text-align: right;
-    margin-bottom: 10px;
-}
+        .alerts-toggle button {
+            background: #4a5568;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
 
-.alerts-toggle button {
-    background: #4a5568;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-}
+        .alerts-toggle button:hover {
+            background: #2d3748;
+        }
 
-.alerts-toggle button:hover {
-    background: #2d3748;
-}
+        /* Sliding Alerts Panel */
+        .alerts-panel-inner {
+            width: 100%;
+            transition: transform 0.35s ease, opacity 0.25s ease;
+        }
 
-/* Sliding Alerts Panel */
+        /* Collapsed state */
+        .alerts-collapsed .alerts-panel-inner {
+            transform: translateX(110%);
+            opacity: 0;
+            pointer-events: none;
+        }
 
-.alerts-panel {
-    position: sticky;
-    top: 20px;
-    transition: all 0.35s ease;
-}
+        /* Scrollbar styling for alerts panel */
+        .alerts-panel::-webkit-scrollbar {
+            width: 6px;
+        }
 
-/* Default expanded state */
-.alerts-panel-inner {
-    width: 100%;
-    transition: transform 0.35s ease, opacity 0.25s ease;
-}
+        .alerts-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
 
-/* Collapsed state */
-.alerts-collapsed .alerts-panel-inner {
-    transform: translateX(110%);
-    opacity: 0;
-    pointer-events: none;
-}
+        .alerts-panel::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 10px;
+        }
 
+        .alerts-panel::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+        .suggestion {
+            padding: 12px 15px;
+            cursor: pointer;
+            color: #2d3748;
+            font-size: 14px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.2s;
+        }
+
+        .suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion:hover {
+            background: #f0f4ff;
+            color: #596ce8;
+        }
+
+        .suggestion:active {
+            background: #596ce8;
+            color: white;
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -390,178 +424,391 @@
             <p>AI-Driven Decision Support for Smart Retail Management</p>
         </div>
 
+        <!-- Main Dashboard Grid - Two Column Layout -->
+        <div class="dashboard-grid">
 
-        <!-- Daily Intelligence Hero -->
-    <div class="intelligence-hero">
-     <h2>📊 What Matters Today?</h2>
+            <!-- LEFT COLUMN: Main Content -->
+            <div class="main-panel">
 
-     <div class="summary">{{ daily_summary }}</div>
-
-        <div class="insight">
-        <strong>💡 Executive Insight:</strong> {{ daily_insight }}
-        </div>
-
-    {% if recommended_actions %}
-    <div class="actions-block" style="
-        margin-top: 16px;
-        background: rgba(255,255,255,0.9);
-        padding: 14px;
-        border-radius: 10px;
-        color: #2d3748;
-    ">
-        <strong>✅ Recommended Actions Today:</strong>
-        <ul style="margin-top: 10px; padding-left: 20px;">
-            {% for action in recommended_actions %}
-                <li style="margin-bottom: 6px;">{{ action }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-</div>
-<!-- Trend & Pattern Intelligence -->
-<div class="concerns-section">
-    <h3>📈 Trend Intelligence</h3>
-
-    <p><strong>System Insight:</strong> {{ trend_summary }}</p>
-
-    <p>
-        <strong>Risk Level:</strong>
-        <span class="trend-indicator {{ risk_level }}">
-            {{ risk_level|upper }}
-        </span>
-    </p>
-
-    {% if recurring_patterns %}
-        <p style="margin-top:12px;"><strong>Recurring Issues:</strong></p>
-        <ul>
-            {% for item in recurring_patterns %}
-                <li>
-                    "{{ item.issue }}" occurred {{ item.count }} times recently
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No repeating issues detected yet.</p>
-    {% endif %}
-</div>
-
-<!-- Main Dashboard Grid -->
-<div class="dashboard-grid">
-
-    <!-- LEFT: Intelligence & KPIs -->
-    <div class="main-panel">
-
-        <!-- KPI Cards -->
-        <div class="kpi-grid">
-            <div class="kpi-card critical">
-                <div class="label">Critical Alerts</div>
-                <div class="value">{{ critical_unresolved }}</div>
-                <div class="subtext">Require immediate action</div>
-            </div>
-
-            <div class="kpi-card warning">
-                <div class="label">Today's Alerts</div>
-                <div class="value">{{ total_alerts_today }}</div>
-                <div class="subtext">
-                    <span class="trend-indicator {{ trend }}">{{ trend|upper }}</span>
-                    {{ average_daily }}/day avg
+                <!-- Daily Intelligence Hero -->
+                <div class="intelligence-hero">
+                    <h2>📊 What Matters Today?</h2>
+                    <div class="summary">{{ daily_summary }}</div>
+                    <div class="insight">
+                        <strong>💡 Executive Insight:</strong> {{ daily_insight }}
+                    </div>
                 </div>
-            </div>
 
-            <div class="kpi-card info">
-                <div class="label">Total Unresolved</div>
-                <div class="value">{{ total_unresolved }}</div>
-                <div class="subtext">Across all priorities</div>
-            </div>
-
-            <div class="kpi-card success">
-                <div class="label">Resolved Today</div>
-                <div class="value">{{ resolved_today }}</div>
-                <div class="subtext">Issues closed</div>
-            </div>
-        </div>
-
-        <!-- Top Priority Concerns -->
-        {% if top_concerns %}
-        <div class="concerns-section">
-            <h3>🔥 Top Priority Concerns</h3>
-            {% for concern in top_concerns %}
-            <div class="concern-item {{ concern.priority }}">
-                <div class="message">{{ concern.message }}</div>
-                <div class="meta">
-                    <span style="text-transform: uppercase; font-weight: 600;">
-                        {{ concern.priority }}
-                    </span>
-                    • {{ concern.created_at|date:"g:i A" }}
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px;">
+                    <a href="{% url 'core:add_notebook_entry' %}">
+                        <button class="refresh-btn">
+                            ➕ Add Notebook Entry
+                        </button>
+                    </a>
+                    <a href="{% url 'core:view_notebook' %}">
+                        <button class="refresh-btn" style="background:#2d3748;">
+                            📓 View Notebook
+                        </button>
+                    </a>
                 </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
 
-    </div> <!-- end main-panel -->
-
-    <!-- RIGHT: Alerts Panel -->
-    <div class="alerts-panel">
-
-        <!-- Toggle Button -->
-        <div class="alerts-toggle">
-            <button onclick="toggleAlerts()">📌 Alerts</button>
-        </div>
-
-        <!-- Sliding Alerts Content -->
-        <div class="alerts-panel-inner">
-
-            <div class="alerts-section">
-                <h3>📋 Active Alerts (Latest 20)</h3>
-
-                {% if alerts %}
-                    {% for alert in alerts %}
-                    <div class="alert-card {{ alert.priority }}">
-                        <div class="alert-header">
-                            <div class="alert-message">{{ alert.message }}</div>
-                            <span class="priority-badge {{ alert.priority }}">
-                                {{ alert.priority }}
-                            </span>
+                <!-- Copilot Section -->
+                <div class="concerns-section">
+                    <div id="copilot-wrapper" style="position:relative;">
+                        <h3>🤖 Ask the System</h3>
+                        <div style="position: relative;">
+                            <input
+                                type="text"
+                                id="copilot-question"
+                                placeholder="Ask about today, expenses, alerts, or trends..."
+                                style="
+                                    width:100%;
+                                    padding:10px;
+                                    padding-right: 35px;
+                                    border-radius:6px;
+                                    border:1px solid #3975c4;
+                                    margin-bottom: 0;
+                                "
+                            />
+                            <button
+                                id="clear-input-btn"
+                                onclick="clearInputField()"
+                                style="
+                                    position: absolute;
+                                    right: 10px;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                    background: none;
+                                    border: none;
+                                    font-size: 20px;
+                                    cursor: pointer;
+                                    color: #a0aec0;
+                                    padding: 0;
+                                    width: 24px;
+                                    height: 24px;
+                                    display: none;
+                                    align-items: center;
+                                    justify-content: center;
+                                    transition: color 0.2s;
+                                "
+                            >
+                                ✕
+                            </button>
                         </div>
-
-                        {% if alert.ai_explanation %}
-                        <div class="alert-explanation">
-                            <strong>🤖 AI Analysis:</strong> {{ alert.ai_explanation }}
+                        <!-- Suggested Questions -->
+                        <div
+                            id="copilot-suggestions"
+                            style="
+                                display:none;
+                                position:absolute;
+                                background: white;
+                                border: 2px solid #596ce8;
+                                border-top: none;
+                                border-radius: 0 0 8px 8px;
+                                margin-top: 0;
+                                top: 100%;
+                                left: 0;
+                                right: 0;
+                                width: 100%;
+                                z-index: 10;
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                            "
+                        >
+                            <div class="suggestion" onclick="selectSuggestion('Why is today risky?')">
+                                Why is today risky?
+                            </div>
+                            <div class="suggestion" onclick="selectSuggestion('Why are expenses increasing?')">
+                                Why are expenses increasing?
+                            </div>
+                            <div class="suggestion" onclick="selectSuggestion('Are any issues recurring?')">
+                                Are any issues recurring?
+                            </div>
+                            <div class="suggestion" onclick="selectSuggestion('What should I focus on today?')">
+                                What should I focus on today?
+                            </div>
                         </div>
+                    </div>
+                    <button onclick="askCopilot()" class="refresh-btn" style="margin-top:10px;">
+                        Ask
+                    </button>
+                    <div
+                        id="copilot-answer"
+                        style="
+                            margin-top:15px;
+                            padding:15px;
+                            background: linear-gradient(135deg, #f8f9fa 0%, #e8ecf1 100%);
+                            border: 1px solid #596ce8;
+                            border-radius:6px;
+                            display:none;
+                            color: #2d3748;
+                        "
+                    ></div>
+                </div>
+
+                {% if recommended_actions %}
+                <div class="actions-block" style="
+                    background: rgba(255,255,255,0.9);
+                    padding: 14px;
+                    border-radius: 10px;
+                    color: #2d3748;
+                ">
+                    <strong>✅ Recommended Actions Today:</strong>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        {% for action in recommended_actions %}
+                            <li style="margin-bottom: 6px;">{{ action }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Trend Intelligence -->
+                <div class="concerns-section">
+                    <h3>📈 Trend Intelligence</h3>
+                    <p><strong>System Insight:</strong> {{ trend_summary }}</p>
+                    <p>
+                        <strong>Risk Level:</strong>
+                        <span class="trend-indicator {{ risk_level }}">
+                            {{ risk_level|upper }}
+                        </span>
+                    </p>
+                    {% if recurring_patterns %}
+                        <p style="margin-top:12px;"><strong>Recurring Issues:</strong></p>
+                        <ul>
+                            {% for item in recurring_patterns %}
+                                <li>
+                                    "{{ item.issue }}" occurred {{ item.count }} times recently
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No repeating issues detected yet.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Financial Intelligence -->
+                <div class="concerns-section">
+                    <h3>💰 Financial Intelligence</h3>
+                    <div class="concern-item">
+                        <div class="message">
+                            {{ financial_baseline.baseline_summary }}
+                        </div>
+                        {% if financial_baseline.baseline.expense %}
+                            <div class="meta">
+                                Average daily expense:
+                                ₹ {{ financial_baseline.baseline.expense.average }}
+                                (Range:
+                                ₹ {{ financial_baseline.baseline.expense.min }} –
+                                ₹ {{ financial_baseline.baseline.expense.max }})
+                            </div>
                         {% endif %}
+                    </div>
+                    <div class="concern-item {% if financial_trends.financial_risk_level == 'elevated' %}medium{% endif %}">
+                        <div class="message">
+                            {{ financial_trends.financial_trend_summary }}
+                        </div>
+                        <div class="meta">
+                            Financial risk level:
+                            <strong style="text-transform:uppercase;">
+                                {{ financial_trends.financial_risk_level }}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
 
-                        <div class="alert-meta">
-                            <span>Source: {{ alert.source }}</span>
-                            <span>{{ alert.created_at|date:"M d, Y • g:i A" }}</span>
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card critical">
+                        <div class="label">Critical Alerts</div>
+                        <div class="value>{{ critical_unresolved }}</div>
+                        <div class="subtext">Require immediate action</div>
+                    </div>
+
+                    <div class="kpi-card warning">
+                        <div class="label">Today's Alerts</div>
+                        <div class="value>{{ total_alerts_today }}</div>
+                        <div class="subtext>
+                            <span class="trend-indicator {{ trend }}">{{ trend|upper }}</span>
+                            {{ average_daily }}/day avg
+                        </div>
+                    </div>
+
+                    <div class="kpi-card info">
+                        <div class="label">Total Unresolved</div>
+                        <div class="value>{{ total_unresolved }}</div>
+                        <div class="subtext">Across all priorities</div>
+                    </div>
+
+                    <div class="kpi-card success">
+                        <div class="label">Resolved Today</div>
+                        <div class="value>{{ resolved_today }}</div>
+                        <div class="subtext">Issues closed</div>
+                    </div>
+                </div>
+
+                <!-- Top Priority Concerns -->
+                {% if top_concerns %}
+                <div class="concerns-section">
+                    <h3>🔥 Top Priority Concerns</h3>
+                    {% for concern in top_concerns %}
+                    <div class="concern-item {{ concern.priority }}">
+                        <div class="message">{{ concern.message }}</div>
+                        <div class="meta">
+                            <span style="text-transform: uppercase; font-weight: 600;">
+                                {{ concern.priority }}
+                            </span>
+                            • {{ concern.created_at|date:"g:i A" }}
                         </div>
                     </div>
                     {% endfor %}
-                {% else %}
-                    <div class="empty-state">
-                        <h3>All Clear! 🎉</h3>
-                        <p>No active alerts.</p>
-                    </div>
+                </div>
                 {% endif %}
 
-                <button class="refresh-btn" onclick="location.reload()">
-                    🔄 Refresh Dashboard
-                </button>
-            </div>
+            </div> <!-- end main-panel -->
 
-        </div> <!-- end alerts-panel-inner -->
+            <!-- RIGHT COLUMN: Alerts Panel (Sticky from top) -->
+            <div class="alerts-panel">
+                <div class="alerts-section">
+                    <h3>📋 Active Alerts (Latest 20)</h3>
 
-    </div> <!-- end alerts-panel -->
+                    {% if alerts %}
+                        {% for alert in alerts %}
+                        <div class="alert-card {{ alert.priority }}">
+                            <div class="alert-header">
+                                <div class="alert-message">{{ alert.message }}</div>
+                                <span class="priority-badge {{ alert.priority }}">
+                                    {{ alert.priority }}
+                                </span>
+                            </div>
+                            {% if alert.ai_explanation %}
+                            <div class="alert-explanation">
+                                <strong>🤖 AI Analysis:</strong> {{ alert.ai_explanation }}
+                            </div>
+                            {% endif %}
+                            <div class="alert-meta">
+                                <span>Source: {{ alert.source }}</span>
+                                <span>{{ alert.created_at|date:"M d, Y • g:i A" }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>All Clear! 🎉</h3>
+                            <p>No active alerts.</p>
+                        </div>
+                    {% endif %}
 
-</div> <!-- end dashboard-grid -->
-</div> <!-- end container -->
-   <script>
-function toggleAlerts() {
-    document.querySelector('.alerts-panel')
-        .classList.toggle('alerts-collapsed');
-}
-</script>
+                    <button class="refresh-btn" onclick="location.reload()">
+                        🔄 Refresh Dashboard
+                    </button>
+                </div>
+            </div> <!-- end alerts-panel -->
 
+        </div> <!-- end dashboard-grid -->
+
+    </div> <!-- end container -->
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const input = document.getElementById("copilot-question");
+            const suggestions = document.getElementById("copilot-suggestions");
+            const wrapper = document.getElementById("copilot-wrapper");
+
+            // Show dropdown on single click or focus
+            input.addEventListener("click", () => {
+                suggestions.style.display = "block";
+            });
+
+            input.addEventListener("focus", () => {
+                suggestions.style.display = "block";
+            });
+
+            // Hide dropdown when typing
+            input.addEventListener("input", () => {
+                suggestions.style.display = "none";
+            });
+
+            // Hide dropdown only when clicking outside the wrapper
+            document.addEventListener("click", (event) => {
+                if (!wrapper.contains(event.target)) {
+                    suggestions.style.display = "none";
+                }
+            });
+
+            // Keep dropdown open when hovering over it or the input
+            wrapper.addEventListener("mouseenter", () => {
+                if (input.value === "") {
+                    suggestions.style.display = "block";
+                }
+            });
+
+            // Hide dropdown when mouse leaves the wrapper
+            wrapper.addEventListener("mouseleave", () => {
+                suggestions.style.display = "none";
+            });
+
+            // Allow selecting suggestions with keyboard
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    suggestions.style.display = "none";
+                }
+                // Trigger ask on Enter key
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    askCopilot();
+                }
+            });
+
+            window.selectSuggestion = function (text) {
+                const input = document.getElementById("copilot-question");
+                const clearBtn = document.getElementById("clear-input-btn");
+                input.value = text;
+                suggestions.style.display = "none";
+                clearBtn.style.display = "flex";
+                input.focus();
+            };
+
+            window.askCopilot = function () {
+                const answerBox = document.getElementById("copilot-answer");
+                const question = input.value.trim();
+
+                if (!question) return;
+
+                suggestions.style.display = "none";
+                answerBox.style.display = "block";
+                answerBox.innerHTML = "<strong style='color: #596ce8;'>🤖 Thinking...</strong>";
+
+                fetch("/api/copilot/ask/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    answerBox.innerHTML = "<strong style='color: #596ce8;'>✓ Answer:</strong><br><span style='color: #4a5568; line-height: 1.6;'>" + data.answer + "</span>";
+                })
+                .catch(() => {
+                    answerBox.innerHTML = "<strong style='color: #f56565;'>✗ Error:</strong> Unable to reach Copilot.";
+                });
+            };
+
+            window.clearInputField = function () {
+                const clearBtn = document.getElementById("clear-input-btn");
+                input.value = "";
+                clearBtn.style.display = "none";
+            };
+
+            // Show clear button when input is not empty
+            input.addEventListener("input", () => {
+                const clearBtn = document.getElementById("clear-input-btn");
+                if (input.value.trim() !== "") {
+                    clearBtn.style.display = "flex";
+                } else {
+                    clearBtn.style.display = "none";
+                }
+            });
+        });
+    </script>
 
 </body>
 </html>

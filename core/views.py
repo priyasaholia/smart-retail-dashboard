@@ -1,43 +1,62 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+
+from .models import Alert, NotebookEntry
 from .forms import NotebookEntryForm
-from django.shortcuts import redirect
-
-
-from .models import Alert
 from .ai_engine import (
     generate_alert_intelligence,
     generate_daily_intelligence,
     generate_alert_trends,
+    generate_financial_baseline,
+    generate_financial_trends,
+    generate_financial_trend_alert,
+    generate_financial_alert,
 )
 
-
+# ----------------------------
+# BASIC VIEWS
+# ----------------------------
 
 def home(request):
     return render(request, "home.html")
 
 
-from .ai_engine import generate_daily_intelligence
-from .models import Alert
+# ----------------------------
+# DASHBOARD (COMMAND CENTER)
+# ----------------------------
 
 def dashboard(request):
-    from .ai_engine import generate_financial_trend_alert
+    # Financial trend alert (prototype-safe trigger)
     generate_financial_trend_alert()
 
     alerts = Alert.objects.filter(resolved=False).order_by("-created_at")[:20]
 
     daily_intelligence = generate_daily_intelligence()
     trend_intelligence = generate_alert_trends()
+    financial_baseline = generate_financial_baseline()
+    financial_trends = generate_financial_trends()
 
     context = {
         "alerts": alerts,
+
+        # Daily + operational intelligence
         **daily_intelligence,
         **trend_intelligence,
+
+        # Financial intelligence
+        "financial_baseline": financial_baseline,
+        "financial_trends": financial_trends,
     }
 
     return render(request, "dashboard.html", context)
+
+
+# ----------------------------
+# NOTEBOOK
+# ----------------------------
+
 def add_notebook_entry(request):
     """
     Phase 4.2 — User-facing notebook entry creation
@@ -45,14 +64,14 @@ def add_notebook_entry(request):
 
     if request.method == "POST":
         form = NotebookEntryForm(request.POST)
+
         if form.is_valid():
-          entry = form.save()
+            entry = form.save()
 
-         # Phase 4.4 — Financial anomaly check
-        from .ai_engine import generate_financial_alert
-        generate_financial_alert(entry)
+            # Phase 4.4 — Financial anomaly detection
+            generate_financial_alert(entry)
 
-        return redirect("core:dashboard")
+            return redirect("core:dashboard")
 
     else:
         form = NotebookEntryForm()
@@ -64,6 +83,22 @@ def add_notebook_entry(request):
     )
 
 
+def view_notebook(request):
+    """
+    Prototype — View recent notebook entries
+    """
+    entries = NotebookEntry.objects.order_by("-created_at")[:20]
+
+    return render(
+        request,
+        "view_notebook.html",
+        {"entries": entries}
+    )
+
+
+# ----------------------------
+# ALERT INGESTION API
+# ----------------------------
 
 @csrf_exempt
 def ingest_alert(request):
@@ -88,10 +123,8 @@ def ingest_alert(request):
                 status=400
             )
 
-        # AI reasoning
         priority, explanation = generate_alert_intelligence(message)
 
-        # Create alert with intelligence
         alert = Alert.objects.create(
             message=message,
             source=source,
@@ -100,10 +133,7 @@ def ingest_alert(request):
         )
 
         return JsonResponse(
-            {
-                "status": "success",
-                "alert_id": alert.id
-            },
+            {"status": "success", "alert_id": alert.id},
             status=201
         )
 
@@ -111,4 +141,41 @@ def ingest_alert(request):
         return JsonResponse(
             {"error": "Invalid JSON"},
             status=400
+        )
+@csrf_exempt
+def copilot_ask(request):
+    """
+    Phase 6.4 — Copilot API endpoint
+    """
+
+    if request.method != "POST":
+        return JsonResponse(
+            {"error": "Only POST allowed"},
+            status=405
+        )
+
+    try:
+        data = json.loads(request.body)
+        question = data.get("question")
+
+        if not question:
+            return JsonResponse(
+                {"error": "Question is required"},
+                status=400
+            )
+
+        from .ai_engine import generate_copilot_answer
+        answer = generate_copilot_answer(question)
+
+        return JsonResponse(
+            {
+                "question": question,
+                "answer": answer
+            }
+        )
+
+    except Exception as e:
+        return JsonResponse(
+            {"error": str(e)},
+            status=500
         )

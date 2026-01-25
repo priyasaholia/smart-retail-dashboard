@@ -390,3 +390,168 @@ def generate_financial_trend_alert():
     )
 
     return alert
+# =========================================================
+# PHASE 6 — CONTEXTUAL AI Q&A (COPILOT CORE)
+# =========================================================
+
+def classify_question_intent(question):
+    """
+    Phase 6.1 — Classify Copilot question intent
+    """
+    q = question.lower()
+
+    if "today" in q or "attention" in q or "now" in q:
+        return "daily_status"
+
+    if "expense" in q or "money" in q or "spending" in q:
+        return "financial_reasoning"
+
+    if "trend" in q or "recurring" in q or "pattern" in q:
+        return "trend_reasoning"
+
+    if "why" in q and "alert" in q:
+        return "system_explanation"
+
+    return "unknown"
+
+
+def assemble_context_for_question(intent):
+    """
+    Phase 6.2 — Assemble system context for Copilot
+    """
+    context = {}
+
+    if intent == "daily_status":
+        context["daily"] = generate_daily_intelligence()
+
+    elif intent == "financial_reasoning":
+        context["financial_trends"] = generate_financial_trends()
+
+    elif intent == "trend_reasoning":
+        context["alert_trends"] = generate_alert_trends()
+
+    elif intent == "system_explanation":
+        context["system"] = {
+            "alert_logic": "Alerts are prioritized based on customer impact, urgency, and risk.",
+            "trend_logic": "Trends detect persistence, repetition, and escalation over time.",
+        }
+
+    return context
+
+
+def generate_copilot_answer(question):
+    """
+    Evidence-driven, state-aware Copilot reasoning
+    """
+
+    intent = classify_question_intent(question)
+    state = get_system_state_snapshot()
+
+    alerts = state["alerts"]
+    financial = state["financial"]
+    trends = state["trends"]
+
+    # ---------------- DAILY STATUS ----------------
+    if intent == "daily_status":
+        parts = []
+
+        if alerts["critical_unresolved"] > 0:
+            parts.append(
+                f"There are {alerts['critical_unresolved']} unresolved critical alerts."
+            )
+
+        if alerts["recent_24h"] > 0:
+            parts.append(
+                f"{alerts['recent_24h']} alerts were generated in the last 24 hours."
+            )
+
+        if alerts["recent_examples"]:
+            parts.append(
+                f"Recent issues include: {', '.join(alerts['recent_examples'])}."
+            )
+
+        if financial["risk_level"] == "elevated":
+            parts.append("Financial risk is elevated due to sustained overspending.")
+
+        if not parts:
+            return (
+                "Operations are stable today. No critical alerts or financial risks "
+                "are currently detected."
+            )
+
+        return (
+            "Today is considered risky because "
+            + " ".join(parts)
+            + " Recommended action: resolve critical alerts first and review finances."
+        )
+
+    # ---------------- FINANCIAL REASONING ----------------
+    if intent == "financial_reasoning":
+        return (
+            f"Financial analysis shows a risk level of '{financial['risk_level']}'. "
+            f"{financial['summary']} "
+            "This conclusion is based on recent notebook entries compared against "
+            "learned spending baselines."
+        )
+
+    # ---------------- TREND REASONING ----------------
+    if intent == "trend_reasoning":
+        return (
+            f"Trend analysis indicates a '{trends['risk_level']}' operational risk. "
+            f"{trends['summary']} "
+            "Recurring unresolved issues suggest systemic problems rather than isolated events."
+        )
+
+    # ---------------- SYSTEM EXPLANATION ----------------
+    if intent == "system_explanation":
+        return (
+            "This system reasons over live operational, financial, and trend data. "
+            "It prioritizes issues based on customer impact, urgency, recurrence, "
+            "and financial deviation from normal behavior."
+        )
+
+    # ---------------- FALLBACK ----------------
+    return (
+        "I couldn't fully understand that question. "
+        "Try asking about today's risks, expenses, or recurring issues."
+    )
+
+def get_system_state_snapshot():
+    """
+    Live snapshot of system state for Copilot reasoning
+    """
+
+    from django.utils.timezone import now
+    from datetime import timedelta
+
+    unresolved = Alert.objects.filter(resolved=False)
+    critical = unresolved.filter(priority="critical")
+    medium = unresolved.filter(priority="medium")
+
+    last_24h = now() - timedelta(hours=24)
+    recent_alerts = unresolved.filter(created_at__gte=last_24h)
+
+    financial_trends = generate_financial_trends()
+    alert_trends = generate_alert_trends()
+
+    return {
+        "alerts": {
+            "total_unresolved": unresolved.count(),
+            "critical_unresolved": critical.count(),
+            "medium_unresolved": medium.count(),
+            "recent_24h": recent_alerts.count(),
+            "recent_examples": list(
+                recent_alerts.values_list("message", flat=True)[:2]
+            ),
+        },
+        "financial": {
+            "risk_level": financial_trends.get("financial_risk_level"),
+            "summary": financial_trends.get("financial_trend_summary"),
+        },
+        "trends": {
+            "risk_level": alert_trends.get("risk_level"),
+            "summary": alert_trends.get("trend_summary"),
+        },
+        "timestamp": now().strftime("%Y-%m-%d %H:%M"),
+    }
+
