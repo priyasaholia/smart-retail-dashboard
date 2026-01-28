@@ -1,65 +1,1092 @@
 <!DOCTYPE html>
 <html>
+{% load dict_filters %}
 <head>
-    <title>Notebook</title>
+    <title>Expense Notebook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body {
-            font-family: sans-serif;
-            background: #f7fafc;
-            padding: 40px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .container {
-            max-width: 700px;
-            margin: auto;
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #A89968 0%, #B8956A 50%, #B47F5F 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .notebook-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Top Navigation */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            background: #F5E6D3;
+            padding: 16px 24px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #8B6F47;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-3px);
+            color: #9B5E3F;
+        }
+
+        .nav-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #5C4033;
+        }
+
+        /* Intelligence Feedback Section */
+        .intelligence-section {
+            margin-bottom: 40px;
+            animation: slideDown 0.6s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .intelligence-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 230, 211, 0.95) 100%);
+            border-radius: 12px;
+            border: 2px solid #B8956A;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .intelligence-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #E0D0C0;
+        }
+
+        .intelligence-icon {
+            font-size: 32px;
+        }
+
+        .intelligence-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #5C4033;
+            letter-spacing: 0.3px;
+        }
+
+        .intelligence-content {
+            display: grid;
+            gap: 18px;
+        }
+
+        .insight-block {
+            padding: 16px 18px;
             background: white;
-            padding: 24px;
+            border-radius: 8px;
+            border-left: 4px solid #A89968;
+            transition: all 0.3s ease;
+        }
+
+        .insight-block:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(168, 153, 104, 0.15);
+        }
+
+        .insight-block.insight-warning {
+            border-left-color: #D4A574;
+            background: rgba(212, 165, 116, 0.05);
+        }
+
+        .insight-block.insight-action {
+            border-left-color: #B47F5F;
+            background: rgba(180, 127, 95, 0.05);
+        }
+
+        .insight-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #8B6F47;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .insight-text {
+            font-size: 15px;
+            color: #3a3a3a;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        /* Notebook Pages */
+        .notebook-pages {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 40px;
+            perspective: 1000px;
+        }
+
+        .notebook-page {
+            background: #faf8f3;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), inset -2px 0 5px rgba(0, 0, 0, 0.05);
+            position: relative;
+            transform-origin: left;
+            transition: all 0.3s ease;
+        }
+
+        .notebook-page:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25), inset -2px 0 5px rgba(0, 0, 0, 0.05);
+            transform: rotateY(-2deg);
+        }
+
+        .page-spiral {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 12px;
+            background: linear-gradient(90deg, #A89968 0%, #B8956A 50%, #A89968 100%);
+            border-radius: 6px 0 0 6px;
+        }
+
+        .page-content {
+            padding: 30px 30px 30px 40px;
+            position: relative;
+        }
+
+        .page-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 29px,
+                #e8ddd0 29px,
+                #e8ddd0 30px
+            );
+            pointer-events: none;
             border-radius: 8px;
         }
-        .entry {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 12px 0;
+
+        .page-margin {
+            position: absolute;
+            left: 25px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, #B8956A 30%, #B8956A 70%, transparent);
         }
-        .type {
-            font-weight: bold;
+
+        .entries-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Expense Entry */
+        .expense-entry {
+            display: grid;
+            grid-template-columns: 1fr auto 100px;
+            gap: 20px;
+            align-items: start;
+            margin-bottom: 28px;
+            padding-bottom: 0;
+        }
+
+        .entry-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .entry-markers {
+            display: flex;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        .marker-badge {
+            font-size: 14px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            cursor: help;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(168, 153, 104, 0.3);
+        }
+
+        .marker-anomaly {
+            background: rgba(212, 165, 116, 0.15);
+            border-color: #D4A574;
+        }
+
+        .marker-anomaly:hover {
+            background: rgba(212, 165, 116, 0.25);
+            transform: scale(1.1);
+        }
+
+        .marker-trend {
+            background: rgba(180, 127, 95, 0.15);
+            border-color: #B47F5F;
+        }
+
+        .marker-trend:hover {
+            background: rgba(180, 127, 95, 0.25);
+            transform: scale(1.1);
+        }
+
+        .marker-pattern {
+            background: rgba(168, 153, 104, 0.15);
+            border-color: #A89968;
+        }
+
+        .marker-pattern:hover {
+            background: rgba(168, 153, 104, 0.25);
+            transform: scale(1.1);
+        }
+
+        .entry-date {
+            font-size: 11px;
+            color: #888;
+            font-weight: 600;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
+        }
+
+        .entry-type-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #A89968 0%, #B47F5F 100%);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            width: fit-content;
+            margin-bottom: 4px;
+        }
+
+        .entry-description {
+            font-size: 15px;
+            color: #2a2a2a;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+
+        .entry-notes {
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .entry-amount {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-end;
+        }
+
+        .amount-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #A89968;
+            font-family: 'Courier New', monospace;
+        }
+
+        .amount-currency {
             font-size: 12px;
-            color: #4a5568;
+            color: #999;
+            font-weight: 600;
         }
-        .amount {
-            font-size: 16px;
-            margin: 4px 0;
+
+        /* Empty State */
+        .empty-notebook {
+            background: #faf8f3;
+            border-radius: 8px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
         }
-        .desc {
-            color: #718096;
+
+        .empty-notebook::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 12px;
+            background: linear-gradient(90deg, #8B6F47 0%, #A0826D 50%, #8B6F47 100%);
+            border-radius: 8px 0 0 8px;
         }
-        .back {
+
+        .empty-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .empty-icon {
+            font-size: 64px;
             margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .empty-text {
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #A89968 0%, #B47F5F 100%);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(168, 153, 104, 0.3);
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(168, 153, 104, 0.4);
+        }
+
+        /* Floating Calculator Button */
+        .calculator-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #B8956A 0%, #A89968 100%);
+            border: 3px solid #F5E6D3;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .calculator-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .calculator-fab:active {
+            transform: scale(0.95);
+        }
+
+        /* Calculator Modal */
+        .calculator-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .calculator-modal.active {
+            display: flex;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .calculator-box {
+            background: #F5E6D3;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 350px;
+            animation: popUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popUp {
+            from {
+                opacity: 0;
+                transform: scale(0.5) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .calculator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calculator-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #5C4033;
+        }
+
+        .calculator-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #A89968;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calculator-close:hover {
+            transform: rotate(90deg);
+            color: #B47F5F;
+        }
+
+        .calculator-display {
+            background: #fff;
+            border: 2px solid #B8956A;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 28px;
+            text-align: right;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #A89968;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .calc-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+            color: #5C4033;
+            border: 2px solid #E0D0C0;
+        }
+
+        .calc-btn:hover {
+            background: #E0D0C0;
+            transform: translateY(-2px);
+        }
+
+        .calc-btn:active {
+            transform: translateY(0);
+        }
+
+        .calc-btn.operator {
+            background: linear-gradient(135deg, #A89968 0%, #B47F5F 100%);
+            color: white;
+            border: none;
+        }
+
+        .calc-btn.operator:hover {
+            background: linear-gradient(135deg, #B47F5F 0%, #A89968 100%);
+        }
+
+        .calc-btn.equals {
+            background: linear-gradient(135deg, #B8956A 0%, #A89968 100%);
+            color: white;
+            border: none;
+            grid-column: span 2;
+        }
+
+        .calc-btn.equals:hover {
+            background: linear-gradient(135deg, #A89968 0%, #B47F5F 100%);
+        }
+
+        .calc-btn.clear {
+            background: #D9534F;
+            color: white;
+            border: none;
+            grid-column: span 2;
+        }
+
+        .calc-btn.clear:hover {
+            background: #C9302C;
+        }
+
+        .calc-btn.zero {
+            grid-column: span 2;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .notebook-pages {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .page-content {
+                padding: 25px 25px 25px 35px;
+            }
+
+            .expense-entry {
+                grid-template-columns: 1fr 80px;
+                gap: 15px;
+            }
+
+            .amount-value {
+                font-size: 20px;
+            }
+
+            .entry-description {
+                font-size: 14px;
+            }
+
+            .nav-bar {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+
+            .calculator-fab {
+                bottom: 20px;
+                right: 20px;
+                width: 55px;
+                height: 55px;
+                font-size: 24px;
+            }
+
+            .calculator-box {
+                width: 95%;
+                max-width: 320px;
+            }
+
+            .intelligence-card {
+                padding: 24px;
+            }
+
+            .intelligence-header {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+
+            .intelligence-title {
+                font-size: 18px;
+            }
+
+            .insight-block {
+                padding: 14px 16px;
+            }
+
+            .insight-text {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+
+            .notebook-pages {
+                gap: 20px;
+            }
+
+            .page-content {
+                padding: 20px 20px 20px 30px;
+            }
+
+            .expense-entry {
+                grid-template-columns: 1fr 70px;
+                margin-bottom: 24px;
+            }
+
+            .amount-value {
+                font-size: 18px;
+            }
+
+            .page-lines {
+                background-image: repeating-linear-gradient(
+                    to bottom,
+                    transparent,
+                    transparent 24px,
+                    #e8ddd0 24px,
+                    #e8ddd0 25px
+                );
+            }
+
+            .empty-notebook {
+                padding: 40px 20px;
+            }
+
+            .calculator-fab {
+                bottom: 15px;
+                right: 15px;
+                width: 50px;
+                height: 50px;
+                font-size: 22px;
+            }
+
+            .calculator-buttons {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+
+            .calc-btn {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+
+            .calculator-display {
+                font-size: 24px;
+                padding: 12px;
+            }
+
+            .intelligence-card {
+                padding: 18px;
+            }
+
+            .intelligence-header {
+                margin-bottom: 16px;
+                gap: 10px;
+            }
+
+            .intelligence-icon {
+                font-size: 28px;
+            }
+
+            .intelligence-title {
+                font-size: 16px;
+            }
+
+            .insight-block {
+                padding: 12px 14px;
+            }
+
+            .insight-label {
+                font-size: 11px;
+            }
+
+            .insight-text {
+                font-size: 13px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
 
-        <div class="back">
-            <a href="{% url 'core:dashboard' %}">← Back to Dashboard</a>
-        </div>
-
-        <h2>📓 Notebook Entries</h2>
-
-        {% for entry in entries %}
-            <div class="entry">
-                <div class="type">{{ entry.entry_type }}</div>
-                {% if entry.amount %}
-                    <div class="amount">₹ {{ entry.amount }}</div>
-                {% endif %}
-                <div class="desc">{{ entry.description }}</div>
-                <div style="font-size:12px;color:#a0aec0;">
-                    {{ entry.created_at|date:"M d, Y • g:i A" }}
-                </div>
-            </div>
-        {% empty %}
-            <p>No notebook entries yet.</p>
-        {% endfor %}
+<div class="notebook-wrapper">
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <a href="{% url 'core:dashboard' %}" class="back-btn">← Back to Dashboard</a>
+        <div class="nav-title">📓 Expense Notebook</div>
+        <div style="width: 100px;"></div>
     </div>
+
+    <!-- Intelligence Feedback Section -->
+    {% if observations %}
+    <div class="intelligence-section">
+        <div class="intelligence-card">
+            <div class="intelligence-header">
+                <div class="intelligence-icon">🧠</div>
+                <div class="intelligence-title">What the System Sees</div>
+            </div>
+            <div class="intelligence-content">
+                {% if observations.primary_insight %}
+                    <div class="insight-block">
+                        <div class="insight-label">Primary Pattern</div>
+                        <div class="insight-text">{{ observations.primary_insight }}</div>
+                    </div>
+                {% endif %}
+
+                {% if observations.spending_pattern %}
+                    <div class="insight-block">
+                        <div class="insight-label">Spending Pattern</div>
+                        <div class="insight-text">{{ observations.spending_pattern }}</div>
+                    </div>
+                {% endif %}
+
+                {% if observations.category_insight %}
+                    <div class="insight-block">
+                        <div class="insight-label">Category Insight</div>
+                        <div class="insight-text">{{ observations.category_insight }}</div>
+                    </div>
+                {% endif %}
+
+                {% if observations.anomaly_insight %}
+                    <div class="insight-block insight-warning">
+                        <div class="insight-label">⚠️ Something Unusual</div>
+                        <div class="insight-text">{{ observations.anomaly_insight }}</div>
+                    </div>
+                {% endif %}
+
+                {% if observations.recommendation %}
+                    <div class="insight-block insight-action">
+                        <div class="insight-label">Next Step</div>
+                        <div class="insight-text">{{ observations.recommendation }}</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Notebook Pages -->
+    {% if entries %}
+        <div class="notebook-pages">
+            {% for entry in entries %}
+                {% if forloop.counter0|divisibleby:5 %}
+                    <div class="notebook-page">
+                        <div class="page-spiral"></div>
+                        <div class="page-lines"></div>
+                        <div class="page-margin"></div>
+                        <div class="page-content">
+                            <div class="entries-container">
+                {% endif %}
+
+                <div class="expense-entry">
+                    <div class="entry-left">
+                        <div class="entry-date">
+                            📅 {{ entry.created_at|date:"M d, Y" }} • {{ entry.created_at|date:"g:i A" }}
+                        </div>
+                        <div class="entry-type-tag">{{ entry.entry_type }}</div>
+                        <div class="entry-description">{{ entry.description }}</div>
+                    </div>
+                    <div class="entry-markers">
+                        {% if entry_markers and entry.id in entry_markers %}
+                            {% if entry_markers|get_item:entry.id|get_item:"anomaly" %}
+                                <div class="marker-badge marker-anomaly" title="This entry significantly deviates from your spending baseline">⚠️</div>
+                            {% endif %}
+                            {% if entry_markers|get_item:entry.id|get_item:"trend_contributor" %}
+                                <div class="marker-badge marker-trend" title="This entry contributes to recent spending trends">📈</div>
+                            {% endif %}
+                            {% if entry_markers|get_item:entry.id|get_item:"category_pattern" %}
+                                <div class="marker-badge marker-pattern" title="This entry type is your dominant activity">🔄</div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% if entry.amount %}
+                        <div class="entry-amount">
+                            <div class="amount-value">₹{{ entry.amount }}</div>
+                            <div class="amount-currency">INR</div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if forloop.counter|divisibleby:5 or forloop.last %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty Notebook -->
+        <div class="empty-notebook">
+            <div class="empty-content">
+                <div class="empty-icon">📝</div>
+                <div class="empty-title">Your Notebook is Empty</div>
+                <div class="empty-text">Start tracking your expenses by adding your first entry to this notebook.</div>
+                <a href="{% url 'core:add_entry' %}" class="add-btn">✏️ Add Entry</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Floating Calculator Button -->
+<button class="calculator-fab" id="calcBtn" title="Open Calculator">🧮</button>
+
+<!-- Calculator Modal -->
+<div class="calculator-modal" id="calcModal">
+    <div class="calculator-box">
+        <div class="calculator-header">
+            <div class="calculator-title">Calculator</div>
+            <button class="calculator-close" id="calcClose">✕</button>
+        </div>
+        <div class="calculator-display" id="calcDisplay">0</div>
+        <div class="calculator-buttons">
+            <button class="calc-btn clear" id="clearBtn">C</button>
+            <button class="calc-btn operator" id="divideBtn">÷</button>
+            <button class="calc-btn operator" id="multiplyBtn">×</button>
+            
+            <button class="calc-btn" data-num="7">7</button>
+            <button class="calc-btn" data-num="8">8</button>
+            <button class="calc-btn" data-num="9">9</button>
+            <button class="calc-btn operator" id="minusBtn">−</button>
+            
+            <button class="calc-btn" data-num="4">4</button>
+            <button class="calc-btn" data-num="5">5</button>
+            <button class="calc-btn" data-num="6">6</button>
+            <button class="calc-btn operator" id="plusBtn">+</button>
+            
+            <button class="calc-btn" data-num="1">1</button>
+            <button class="calc-btn" data-num="2">2</button>
+            <button class="calc-btn" data-num="3">3</button>
+            <button class="calc-btn operator" id="decimalBtn">.</button>
+            
+            <button class="calc-btn zero" data-num="0">0</button>
+            <button class="calc-btn equals" id="equalsBtn">=</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Calculator Logic
+    let display = document.getElementById('calcDisplay');
+    let currentValue = '0';
+    let previousValue = '';
+    let operation = null;
+    let shouldResetDisplay = false;
+
+    const calcModal = document.getElementById('calcModal');
+    const calcBtn = document.getElementById('calcBtn');
+    const calcClose = document.getElementById('calcClose');
+
+    // Open/Close Calculator
+    calcBtn.addEventListener('click', () => {
+        calcModal.classList.add('active');
+        display.focus();
+    });
+
+    calcClose.addEventListener('click', () => {
+        calcModal.classList.remove('active');
+        clearCalculator();
+    });
+
+    calcModal.addEventListener('click', (e) => {
+        if (e.target === calcModal) {
+            calcModal.classList.remove('active');
+            clearCalculator();
+        }
+    });
+
+    // Number buttons
+    document.querySelectorAll('[data-num]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            appendNumber(btn.getAttribute('data-num'));
+        });
+    });
+
+    // Operation buttons
+    document.getElementById('plusBtn').addEventListener('click', () => setOperation('+'));
+    document.getElementById('minusBtn').addEventListener('click', () => setOperation('−'));
+    document.getElementById('multiplyBtn').addEventListener('click', () => setOperation('×'));
+    document.getElementById('divideBtn').addEventListener('click', () => setOperation('÷'));
+    document.getElementById('decimalBtn').addEventListener('click', () => appendNumber('.'));
+    document.getElementById('equalsBtn').addEventListener('click', calculate);
+    document.getElementById('clearBtn').addEventListener('click', clear);
+
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+        if (!calcModal.classList.contains('active')) return;
+
+        if (/[0-9]/.test(e.key)) appendNumber(e.key);
+        if (e.key === '.') appendNumber('.');
+        if (e.key === '+') setOperation('+');
+        if (e.key === '-') setOperation('−');
+        if (e.key === '*') {
+            e.preventDefault();
+            setOperation('×');
+        }
+        if (e.key === '/') {
+            e.preventDefault();
+            setOperation('÷');
+        }
+        if (e.key === 'Enter' || e.key === '=') {
+            e.preventDefault();
+            calculate();
+        }
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            backspace();
+        }
+        if (e.key === 'Escape') {
+            calcModal.classList.remove('active');
+            clearCalculator();
+        }
+    });
+
+    function appendNumber(num) {
+        if (shouldResetDisplay) {
+            currentValue = num;
+            shouldResetDisplay = false;
+        } else {
+            if (currentValue === '0' && num !== '.') {
+                currentValue = num;
+            } else if (currentValue.includes('.') && num === '.') {
+                return;
+            } else {
+                currentValue += num;
+            }
+        }
+        updateDisplay();
+    }
+
+    function setOperation(op) {
+        if (operation !== null && !shouldResetDisplay) {
+            // If an operation is already set and we haven't reset display, calculate first
+            calculate();
+        } else if (shouldResetDisplay) {
+            // User just entered operator, just change it
+            operation = op;
+            updateDisplay();
+            return;
+        }
+        
+        previousValue = currentValue;
+        operation = op;
+        shouldResetDisplay = true;
+        updateDisplay();
+    }
+
+    function calculate() {
+        if (operation === null || shouldResetDisplay) return;
+
+        let result;
+        const prev = parseFloat(previousValue);
+        const current = parseFloat(currentValue);
+
+        switch (operation) {
+            case '+':
+                result = prev + current;
+                break;
+            case '−':
+                result = prev - current;
+                break;
+            case '×':
+                result = prev * current;
+                break;
+            case '÷':
+                result = prev / current;
+                break;
+            default:
+                return;
+        }
+
+        currentValue = result.toString();
+        operation = null;
+        shouldResetDisplay = true;
+        updateDisplay();
+    }
+
+    function clear() {
+        currentValue = '0';
+        previousValue = '';
+        operation = null;
+        shouldResetDisplay = false;
+        updateDisplay();
+    }
+
+    function clearCalculator() {
+        currentValue = '0';
+        previousValue = '';
+        operation = null;
+        shouldResetDisplay = false;
+        display.textContent = '0';
+    }
+
+    function backspace() {
+        if (currentValue.length > 1) {
+            currentValue = currentValue.slice(0, -1);
+        } else {
+            currentValue = '0';
+        }
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        if (operation !== null && shouldResetDisplay) {
+            // Show operator when it was just pressed and we haven't started typing the next number
+            display.textContent = `${previousValue} ${operation}`;
+        } else {
+            // Show the current number being typed
+            display.textContent = currentValue;
+        }
+    }
+</script>
+
 </body>
 </html>
+
+

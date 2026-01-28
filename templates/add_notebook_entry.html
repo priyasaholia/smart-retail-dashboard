@@ -2,42 +2,342 @@
 <html>
 <head>
     <title>Add Notebook Entry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: sans-serif;
-            background: #f7fafc;
-            padding: 40px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #A89968 0%, #B8956A 50%, #B47F5F 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .container {
-            max-width: 500px;
-            margin: auto;
-            background: white;
-            padding: 24px;
-            border-radius: 8px;
+
+        .entry-wrapper {
+            width: 100%;
+            max-width: 600px;
         }
-        h2 {
-            margin-bottom: 16px;
-        }
-        button {
-            background: #4a5568;
-            color: white;
-            border: none;
-            padding: 10px 16px;
+
+        /* Back Button */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #F5E6D3;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
             border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-3px);
+        }
+
+        /* Main Form Container */
+        .form-container {
+            background: #F5E6D3;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative elements */
+        .form-container::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 12px;
+            background: linear-gradient(90deg, #A89968 0%, #B8956A 50%, #A89968 100%);
+            border-radius: 12px 0 0 12px;
+        }
+
+        .form-container::after {
+            content: '✏️';
+            position: absolute;
+            top: -10px;
+            right: 30px;
+            font-size: 60px;
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        /* Header */
+        .form-header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 35px;
+            text-align: center;
+        }
+
+        .form-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #5C4033;
+            margin-bottom: 8px;
+        }
+
+        .form-subtitle {
+            font-size: 15px;
+            color: #8B6F47;
+            font-weight: 500;
+        }
+
+        /* Form Group */
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            color: #5C4033;
+            margin-bottom: 8px;
+            text-transform: capitalize;
+            letter-spacing: 0.3px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #D9D0C3;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: white;
+            color: #2a2a2a;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #A89968;
+            box-shadow: 0 0 0 3px rgba(168, 153, 104, 0.1);
+            background: #fafaf8;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 35px;
+            position: relative;
+            z-index: 1;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #A89968 0%, #B47F5F 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(168, 153, 104, 0.3);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(168, 153, 104, 0.4);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+        }
+
+        .btn-cancel {
+            background: #E0D0C0;
+            color: #5C4033;
+            border: 2px solid #D9D0C3;
+        }
+
+        .btn-cancel:hover {
+            background: #D9D0C3;
+            transform: translateY(-2px);
+        }
+
+        /* Success Message (for Django messages if any) */
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #f5c6cb;
+        }
+
+        /* Input hint text */
+        .field-hint {
+            font-size: 12px;
+            color: #8B6F47;
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+
+            .form-container {
+                padding: 40px 25px;
+            }
+
+            .form-title {
+                font-size: 26px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 30px 20px;
+            }
+
+            .form-title {
+                font-size: 22px;
+            }
+
+            .form-subtitle {
+                font-size: 13px;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            select,
+            textarea {
+                padding: 12px 14px;
+                font-size: 14px;
+            }
+
+            label {
+                font-size: 13px;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>📓 Add Notebook Entry</h2>
+
+<div class="entry-wrapper">
+    <!-- Back Button -->
+    <a href="{% url 'core:view_notebook' %}" class="back-link">← Back to Notebook</a>
+
+    <!-- Form Container -->
+    <div class="form-container">
+        <div class="form-header">
+            <h1 class="form-title">📝 New Entry</h1>
+            <p class="form-subtitle">Record your expense and observations</p>
+        </div>
 
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
 
-            <button type="submit">Save Entry</button>
+            <!-- Display any form errors -->
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Render form fields with custom styling -->
+            {% for field in form %}
+                {% if field.name != 'created_at' %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        
+                        {% if field.errors %}
+                            <div style="color: #dc3545; font-size: 12px; margin-top: 6px;">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {% if field.help_text %}
+                            <div class="field-hint">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <button type="submit" class="btn-save">💾 Save Entry</button>
+                <a href="{% url 'core:view_notebook' %}" class="btn-cancel" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">Cancel</a>
+            </div>
         </form>
     </div>
+</div>
+
 </body>
 </html>

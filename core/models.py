@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+
 
 class Product(models.Model):
     name = models.CharField(max_length=200)
@@ -8,7 +10,17 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+
 class Alert(models.Model):
+    # 🔑 USER OWNERSHIP (ADDED)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="alerts",
+        null=True,
+        blank=True
+    )
+
     message = models.CharField(max_length=255)
     source = models.CharField(max_length=100, default="system")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -24,12 +36,22 @@ class Alert(models.Model):
     )
 
     ai_explanation = models.TextField(blank=True, null=True)
-
     resolved = models.BooleanField(default=False)
 
     def __str__(self):
         return self.message
+
+
 class NotebookEntry(models.Model):
+    # 🔑 USER OWNERSHIP (ADDED)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notebook_entries",
+        null=True,
+        blank=True
+    )
+
     ENTRY_TYPES = [
         ("sale", "Sale"),
         ("expense", "Expense"),
@@ -49,9 +71,7 @@ class NotebookEntry(models.Model):
     )
 
     description = models.TextField()
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.entry_type.upper()} | {self.amount}"
-

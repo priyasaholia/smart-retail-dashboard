@@ -69,3 +69,83 @@ table th, table td {
     padding: 12px;
     border-bottom: 1px solid #ddd;
 }
+.hero {
+    padding: 60px 20px;
+    max-width: 900px;
+}
+
+.hero h1 {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.hero-subtext {
+    font-size: 18px;
+    color: #444;
+    max-width: 700px;
+}
+
+.hero-actions {
+    margin-top: 30px;
+}
+
+.primary-btn,
+.secondary-btn {
+    padding: 12px 18px;
+    text-decoration: none;
+    margin-right: 10px;
+    border-radius: 4px;
+}
+
+.primary-btn {
+    background-color: #1f4fd8;
+    color: white;
+}
+
+.secondary-btn {
+    border: 1px solid #1f4fd8;
+    color: #1f4fd8;
+}
+
+.section {
+    padding: 40px 20px;
+    max-width: 900px;
+}
+
+.problem-list {
+    margin-top: 15px;
+}
+
+.problem-list li {
+    margin-bottom: 8px;
+}
+
+.flow {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.flow-step {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #f9f9f9;
+}
+
+.audience {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.audience-card {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 6px;
+    width: 260px;
+}
+
+.cta {
+    text-align: center;
+}

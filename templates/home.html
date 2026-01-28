@@ -1,9 +1,160 @@
-{% extends "base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Retail Intelligence Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-{% block title %}Home{% endblock %}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block content %}
-    <h1>Smart Retail Monitoring System</h1>
-    <p>Track products, inventory, and store performance.</p>
-{% endblock %}
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI";
+            background: #0b0f1a;
+            color: white;
+            overflow-x: hidden;
+        }
 
+        /* ---------- HEADER ---------- */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: rgba(11, 15, 26, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        header .logo {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        header nav {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        header nav a {
+            text-decoration: none;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 14px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn.primary {
+            background: #3f8cff;
+            color: white;
+        }
+
+        .btn.secondary {
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ---------- HERO ---------- */
+        .hero {
+            height: 100vh;
+            position: relative;
+        }
+
+        .hero-content {
+            position: absolute;
+            top: 50%;
+            left: 8%;
+            transform: translateY(-50%);
+            z-index: 10;
+            max-width: 520px;
+        }
+
+        .hero-content h1 {
+            font-size: 3.2rem;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+
+        .hero-content p {
+            font-size: 1.05rem;
+            opacity: 0.8;
+            margin-bottom: 28px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">Retail Intelligence</div>
+
+    <nav>
+        <a href="#how">How it works</a>
+        <a href="#copilot">Copilot</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </nav>
+    <div class="header-actions">
+    <a href="/login/" class="btn secondary">Login</a>
+    <a href="/signup/" class="btn primary">Get Started</a>
+    </div>
+
+</header>
+
+<section class="hero">
+    <div class="hero-content">
+        <h1>An AI that understands your business</h1>
+        <p>
+            Signals → Intelligence → Decisions.<br>
+            Not dashboards. Not chatbots. Real reasoning.
+        </p>
+     <div class="hero-actions">
+      <a href="/signup/" class="btn primary">Get Started</a>
+      <a href="#copilot" class="btn secondary">See how it works</a>
+     </div>
+
+    </div>
+
+    <canvas id="bg"></canvas>
+</section>
+
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="{% static 'js/home_3d.js' %}"></script>
+
+</body>
+</html>

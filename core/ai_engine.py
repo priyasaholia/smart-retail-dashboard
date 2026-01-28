@@ -554,4 +554,184 @@ def get_system_state_snapshot():
         },
         "timestamp": now().strftime("%Y-%m-%d %H:%M"),
     }
+def generate_notebook_observations():
+    """
+    Phase T-1A — Notebook Intelligence Feedback
+    Produces human-readable observations from notebook data
+    Returns structured dictionary with 5 insight types
+    """
+
+    observations = {
+        "primary_insight": None,
+        "spending_pattern": None,
+        "category_insight": None,
+        "anomaly_insight": None,
+        "recommendation": None,
+    }
+
+    # Use existing intelligence
+    baseline_data = generate_financial_baseline()
+    financial_trends = generate_financial_trends()
+
+    baseline = baseline_data.get("baseline", {})
+    entries = NotebookEntry.objects.all().order_by("-created_at")[:20]
+
+    if not entries.exists():
+        return observations
+
+    # 1. PRIMARY_INSIGHT: Expense-to-sales ratio analysis
+    if "expense" in baseline and "sale" in baseline:
+        exp_avg = baseline["expense"]["average"]
+        sale_avg = baseline["sale"]["average"]
+        if exp_avg > 0 and sale_avg > 0:
+            ratio = (exp_avg / sale_avg) * 100
+            if exp_avg > sale_avg:
+                observations["primary_insight"] = (
+                    f"Your expenses average ₹{exp_avg:.0f} vs sales of ₹{sale_avg:.0f}, "
+                    f"creating a {ratio:.0f}% expense-to-sales ratio that warrants attention."
+                )
+            else:
+                observations["primary_insight"] = (
+                    f"Sales averaging ₹{sale_avg:.0f} outpace expenses of ₹{exp_avg:.0f}, "
+                    f"which is a healthy financial position."
+                )
+
+    # 2. SPENDING_PATTERN: Trend-based commentary
+    if financial_trends.get("financial_risk_level") in ["elevated", "high"]:
+        observations["spending_pattern"] = (
+            "Recent spending shows an upward trend compared to your learned baseline, "
+            "indicating potential budget pressure or changing business patterns."
+        )
+    elif financial_trends.get("financial_risk_level") == "low":
+        observations["spending_pattern"] = (
+            "Your spending pattern is stable and within established norms. "
+            "Consistency suggests predictable financial behavior."
+        )
+
+    # 3. CATEGORY_INSIGHT: Most common entry type percentage
+    from collections import Counter
+    if entries.exists():
+        types = Counter(e.entry_type for e in entries)
+        dominant, count = types.most_common(1)[0]
+        percentage = (count / len(entries)) * 100
+
+        observations["category_insight"] = (
+            f"'{dominant}' entries comprise {percentage:.0f}% of recent activity, "
+            f"making them the primary driver of your financial narrative."
+        )
+
+    # 4. ANOMALY_INSIGHT: Large transaction detection
+    recent_entries_list = list(entries)
+    if recent_entries_list:
+        amounts = [e.amount for e in recent_entries_list if e.amount]
+        if len(amounts) >= 3:
+            avg_amount = sum(amounts) / len(amounts)
+            std_dev = (sum((x - avg_amount) ** 2 for x in amounts) / len(amounts)) ** 0.5
+            
+            for entry in recent_entries_list[:5]:
+                if entry.amount and entry.amount > (avg_amount + 2 * std_dev):
+                    observations["anomaly_insight"] = (
+                        f"A {entry.entry_type} entry of ₹{entry.amount:.0f} stands out "
+                        f"as significantly larger than your typical ₹{avg_amount:.0f} transaction."
+                    )
+                    break
+
+    # 5. RECOMMENDATION: Action-based guidance
+    if observations["primary_insight"] and "expense" in baseline and "sale" in baseline:
+        if baseline["expense"]["average"] > baseline["sale"]["average"]:
+            observations["recommendation"] = (
+                "Consider reviewing your largest expense categories to identify "
+                "cost optimization opportunities."
+            )
+        else:
+            observations["recommendation"] = (
+                "Your financial trajectory is positive. Focus on maintaining "
+                "current spending discipline while exploring growth opportunities."
+            )
+
+    return observations
+
+
+def get_entry_intelligence_markers():
+    """
+    Phase T-1B — Entry-Level Intelligence Markers
+    Derives subtle visual markers for individual entries based on existing intelligence.
+    
+    Returns dict: {entry_id: {"anomaly": bool, "trend_contributor": bool, "category_pattern": bool}}
+    
+    Markers are derived from:
+    - Anomaly detection: Entry amount deviates 2+ std dev from baseline
+    - Trend contribution: Entry is in recent high-spending period (elevated risk level)
+    - Category pattern: Entry type is dominant in recent activity
+    
+    This makes the notebook act as explainable evidence for system reasoning.
+    """
+    
+    from django.db.models import Avg
+    from collections import Counter
+    
+    markers = {}
+    
+    # Get all notebook entries
+    entries = NotebookEntry.objects.all().order_by("-created_at")
+    if not entries.exists():
+        return markers
+    
+    # Get baseline for anomaly detection
+    baseline_data = generate_financial_baseline()
+    baseline = baseline_data.get("baseline", {})
+    
+    # Get trend data for contribution detection
+    financial_trends = generate_financial_trends()
+    is_elevated_spending = financial_trends.get("financial_risk_level") in ["elevated", "high"]
+    
+    # Get recent entries for trend and category detection
+    recent_since = now() - timedelta(days=3)
+    recent_entries = NotebookEntry.objects.filter(created_at__gte=recent_since)
+    
+    # Compute category dominance
+    recent_types = Counter(e.entry_type for e in recent_entries)
+    dominant_type = recent_types.most_common(1)[0][0] if recent_types else None
+    
+    # Compute anomaly thresholds for recent entries
+    recent_with_amounts = recent_entries.filter(amount__isnull=False)
+    if recent_with_amounts.exists():
+        amounts = [e.amount for e in recent_with_amounts]
+        avg_recent = sum(amounts) / len(amounts)
+        std_dev = (sum((x - avg_recent) ** 2 for x in amounts) / len(amounts)) ** 0.5
+        anomaly_threshold = avg_recent + (2 * std_dev) if std_dev > 0 else float('inf')
+    else:
+        anomaly_threshold = float('inf')
+    
+    # Process each entry
+    for entry in entries:
+        entry_markers = {
+            "anomaly": False,
+            "trend_contributor": False,
+            "category_pattern": False,
+        }
+        
+        # 1. ANOMALY: Check against baseline
+        if baseline and entry.entry_type in baseline and entry.amount:
+            entry_avg = baseline[entry.entry_type]["average"]
+            # Anomaly if 1.5x the baseline average (high expense/purchase or low sale)
+            if entry.entry_type in ["expense", "purchase"]:
+                if entry.amount > 1.5 * entry_avg:
+                    entry_markers["anomaly"] = True
+            elif entry.entry_type == "sale":
+                if entry.amount < 0.6 * entry_avg:
+                    entry_markers["anomaly"] = True
+        
+        # 2. TREND_CONTRIBUTOR: Is this entry in a recent elevated spending period?
+        if is_elevated_spending and entry.entry_type in ["expense", "purchase"]:
+            if entry.created_at >= recent_since and entry.amount:
+                entry_markers["trend_contributor"] = True
+        
+        # 3. CATEGORY_PATTERN: Is this entry type the dominant category?
+        if entry.entry_type == dominant_type:
+            entry_markers["category_pattern"] = True
+        
+        markers[entry.id] = entry_markers
+    
+    return markers
 

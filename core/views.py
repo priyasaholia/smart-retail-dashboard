@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.contrib.auth.decorators import login_required
+from .ai_engine import generate_notebook_observations, get_entry_intelligence_markers
+
 
 from .models import Alert, NotebookEntry
 from .forms import NotebookEntryForm
@@ -27,31 +30,48 @@ def home(request):
 # DASHBOARD (COMMAND CENTER)
 # ----------------------------
 
+from .models import Alert, NotebookEntry
+from .ai_engine import (
+    generate_daily_intelligence,
+    generate_alert_trends,
+    generate_financial_baseline,
+    generate_financial_trends,
+    generate_financial_trend_alert,
+)
+
+@login_required
 def dashboard(request):
-    # Financial trend alert (prototype-safe trigger)
-    generate_financial_trend_alert()
-
     alerts = Alert.objects.filter(resolved=False).order_by("-created_at")[:20]
+    notebook_entries = NotebookEntry.objects.all()
 
-    daily_intelligence = generate_daily_intelligence()
-    trend_intelligence = generate_alert_trends()
-    financial_baseline = generate_financial_baseline()
-    financial_trends = generate_financial_trends()
+    has_alerts = alerts.exists()
+    has_notebook = notebook_entries.exists()
+
+    is_new_user = not (has_alerts or has_notebook)
 
     context = {
         "alerts": alerts,
-
-        # Daily + operational intelligence
-        **daily_intelligence,
-        **trend_intelligence,
-
-        # Financial intelligence
-        "financial_baseline": financial_baseline,
-        "financial_trends": financial_trends,
+        "is_new_user": is_new_user,
     }
 
-    return render(request, "dashboard.html", context)
+    # 🔥 Only generate intelligence if system has data
+    if not is_new_user:
+        # Safe trigger (only meaningful when data exists)
+        generate_financial_trend_alert()
 
+        daily_intelligence = generate_daily_intelligence()
+        trend_intelligence = generate_alert_trends()
+        financial_baseline = generate_financial_baseline()
+        financial_trends = generate_financial_trends()
+
+        context.update({
+            **daily_intelligence,
+            **trend_intelligence,
+            "financial_baseline": financial_baseline,
+            "financial_trends": financial_trends,
+        })
+
+    return render(request, "dashboard.html", context)
 
 # ----------------------------
 # NOTEBOOK
@@ -85,14 +105,22 @@ def add_notebook_entry(request):
 
 def view_notebook(request):
     """
-    Prototype — View recent notebook entries
+    Prototype — View recent notebook entries with intelligence feedback
     """
     entries = NotebookEntry.objects.order_by("-created_at")[:20]
+    observations = generate_notebook_observations()
+    entry_markers = get_entry_intelligence_markers()
+
+    context = {
+        "entries": entries,
+        "observations": observations,
+        "entry_markers": entry_markers,
+    }
 
     return render(
         request,
         "view_notebook.html",
-        {"entries": entries}
+        context
     )
 
 
