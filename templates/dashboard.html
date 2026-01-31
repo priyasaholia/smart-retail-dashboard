@@ -708,107 +708,108 @@
 
     </div> <!-- end container -->
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const input = document.getElementById("copilot-question");
-            const suggestions = document.getElementById("copilot-suggestions");
-            const wrapper = document.getElementById("copilot-wrapper");
+   <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("copilot-question");
+    const suggestions = document.getElementById("copilot-suggestions");
+    const wrapper = document.getElementById("copilot-wrapper");
+    const answerBox = document.getElementById("copilot-answer");
 
-            // Show dropdown on single click or focus
-            input.addEventListener("click", () => {
-                suggestions.style.display = "block";
-            });
+    // Show dropdown on focus or click
+    input.addEventListener("focus", () => {
+        suggestions.style.display = "block";
+    });
 
-            input.addEventListener("focus", () => {
-                suggestions.style.display = "block";
-            });
+    input.addEventListener("click", () => {
+        suggestions.style.display = "block";
+    });
 
-            // Hide dropdown when typing
-            input.addEventListener("input", () => {
-                suggestions.style.display = "none";
-            });
+    // Hide dropdown when typing
+    input.addEventListener("input", () => {
+        suggestions.style.display = "none";
+    });
 
-            // Hide dropdown only when clicking outside the wrapper
-            document.addEventListener("click", (event) => {
-                if (!wrapper.contains(event.target)) {
-                    suggestions.style.display = "none";
-                }
-            });
+    // Hide dropdown when clicking outside
+    document.addEventListener("click", (event) => {
+        if (!wrapper.contains(event.target)) {
+            suggestions.style.display = "none";
+        }
+    });
 
-            // Keep dropdown open when hovering over it or the input
-            wrapper.addEventListener("mouseenter", () => {
-                if (input.value === "") {
-                    suggestions.style.display = "block";
-                }
-            });
+    // Keyboard controls
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            suggestions.style.display = "none";
+        }
+        if (e.key === "Enter") {
+            e.preventDefault();
+            askCopilot();
+        }
+    });
 
-            // Hide dropdown when mouse leaves the wrapper
-            wrapper.addEventListener("mouseleave", () => {
-                suggestions.style.display = "none";
-            });
+    // Select suggestion
+    window.selectSuggestion = function (text) {
+        const clearBtn = document.getElementById("clear-input-btn");
+        input.value = text;
+        suggestions.style.display = "none";
+        clearBtn.style.display = "flex";
+        input.focus();
+    };
 
-            // Allow selecting suggestions with keyboard
-            input.addEventListener("keydown", (e) => {
-                if (e.key === "Escape") {
-                    suggestions.style.display = "none";
-                }
-                // Trigger ask on Enter key
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    askCopilot();
-                }
-            });
+    // 🔥 ASK COPILOT (FIXED)
+    window.askCopilot = function () {
+        const question = input.value.trim();
+        if (!question) return;
 
-            window.selectSuggestion = function (text) {
-                const input = document.getElementById("copilot-question");
-                const clearBtn = document.getElementById("clear-input-btn");
-                input.value = text;
-                suggestions.style.display = "none";
-                clearBtn.style.display = "flex";
-                input.focus();
-            };
+        suggestions.style.display = "none";
+        answerBox.style.display = "block";
+        answerBox.innerHTML =
+            "<strong style='color: #596ce8;'>🤖 Thinking...</strong>";
 
-            window.askCopilot = function () {
-                const answerBox = document.getElementById("copilot-answer");
-                const question = input.value.trim();
+        fetch("/api/copilot/ask/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const answerText = data.answer.answer;
+            const confidence = data.answer.confidence;
 
-                if (!question) return;
-
-                suggestions.style.display = "none";
-                answerBox.style.display = "block";
-                answerBox.innerHTML = "<strong style='color: #596ce8;'>🤖 Thinking...</strong>";
-
-                fetch("/api/copilot/ask/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ question })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    answerBox.innerHTML = "<strong style='color: #596ce8;'>✓ Answer:</strong><br><span style='color: #4a5568; line-height: 1.6;'>" + data.answer + "</span>";
-                })
-                .catch(() => {
-                    answerBox.innerHTML = "<strong style='color: #f56565;'>✗ Error:</strong> Unable to reach Copilot.";
-                });
-            };
-
-            window.clearInputField = function () {
-                const clearBtn = document.getElementById("clear-input-btn");
-                input.value = "";
-                clearBtn.style.display = "none";
-            };
-
-            // Show clear button when input is not empty
-            input.addEventListener("input", () => {
-                const clearBtn = document.getElementById("clear-input-btn");
-                if (input.value.trim() !== "") {
-                    clearBtn.style.display = "flex";
-                } else {
-                    clearBtn.style.display = "none";
-                }
-            });
+            answerBox.innerHTML = `
+                <strong style="color: #596ce8;">✓ Answer:</strong><br>
+                <span style="color: #4a5568; line-height: 1.6;">
+                    ${answerText}
+                </span>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: #718096;">
+                    Confidence: ${confidence}
+                </div>
+            `;
+        })
+        .catch(() => {
+            answerBox.innerHTML =
+                "<strong style='color: #f56565;'>✗ Error:</strong> Unable to reach Copilot.";
         });
-    </script>
+    };
+
+    // Clear input
+    window.clearInputField = function () {
+        const clearBtn = document.getElementById("clear-input-btn");
+        input.value = "";
+        clearBtn.style.display = "none";
+    };
+
+    // Show clear button when typing
+    input.addEventListener("input", () => {
+        const clearBtn = document.getElementById("clear-input-btn");
+        if (input.value.trim() !== "") {
+            clearBtn.style.display = "flex";
+        } else {
+            clearBtn.style.display = "none";
+        }
+    });
+});
+</script>
 
 </body>
 </html>
