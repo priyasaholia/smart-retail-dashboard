@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Account | Retail Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        /* Reuse styles from login for consistent UI */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; }
+        .login-container { width: 100%; max-width: 420px; padding: 20px; }
+        .login-box { background: white; padding: 48px 40px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .login-header { margin-bottom: 24px; text-align: center; }
+        .login-header h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; color: #1a1a1a; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #333; }
+        input { width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: white; color: #1a1a1a; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 8px; }
+        .login-footer { text-align: center; margin-top: 12px; font-size: 14px; color: #666; }
+        .login-footer a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .show-password { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #444; margin-bottom: 12px; }
+        .show-password input[type="checkbox"] { width: 16px; height: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-header">
+            <h2>Create Account</h2>
+            <p>Set up a new account to get started</p>
+        </div>
+
+        {% if verification_sent %}
+            <div class="error" style="background:#e7f7ff; color:#036; border-left:4px solid #36a;">✅ Check your email — a verification link has been sent. You will be able to sign in after activating your account.</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div style="display:flex; gap:12px; margin-bottom:16px;">
+                <!-- Account type cards -->
+                <label class="acct-card" data-value="customer">
+                    <input type="radio" name="account_type" value="customer" checked hidden>
+                    <strong>I'm a Customer</strong>
+                    <div style="font-size:13px; color:#666; margin-top:6px;">Use the platform to buy/list products</div>
+                </label>
+
+                <label class="acct-card" data-value="retailer">
+                    <input type="radio" name="account_type" value="retailer" hidden>
+                    <strong>I'm a Retailer</strong>
+                    <div style="font-size:13px; color:#666; margin-top:6px;">Manage inventory and sell to customers</div>
+                </label>
+            </div>
+
+            {% for field in form.visible_fields %}
+                {% if field.name != 'account_type' %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="error">{{ field.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="show-password">
+                <input type="checkbox" id="show-password-signup">
+                <label for="show-password-signup">Show password(s)</label>
+            </div>
+
+            <button type="submit">Create account</button>
+        </form>
+
+        <style>
+            .acct-card {
+                flex: 1;
+                border-radius: 10px;
+                padding: 16px;
+                border: 1px solid #eee;
+                background: #fafafa;
+                cursor: pointer;
+                text-align: left;
+            }
+            .acct-card.selected {
+                border-color: #667eea;
+                box-shadow: 0 6px 18px rgba(102,126,234,0.12);
+                background: linear-gradient(90deg, rgba(102,126,234,0.06), rgba(118,75,162,0.03));
+            }
+        </style>
+
+        <script>
+            // card selection
+            document.querySelectorAll('.acct-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.acct-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    const radio = this.querySelector('input[type="radio"]');
+                    if (radio) radio.checked = true;
+                });
+            });
+
+            // show password toggle
+            (function() {
+                const checkbox = document.getElementById('show-password-signup');
+                const form = document.querySelector('form');
+                if (!checkbox || !form) return;
+                checkbox.addEventListener('change', function() {
+                    const pwdInputs = form.querySelectorAll('input[type="password"]');
+                    pwdInputs.forEach(i => i.type = this.checked ? 'text' : 'password');
+                });
+            })();
+        </script>
+
+        <div class="login-footer">
+            Already have an account? <a href="{% url 'login' %}">Sign in</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const checkbox = document.getElementById('show-password-signup');
+        const form = document.querySelector('form');
+        if (!checkbox || !form) return;
+        checkbox.addEventListener('change', function() {
+            const pwdInputs = form.querySelectorAll('input[type="password"]');
+            pwdInputs.forEach(i => i.type = this.checked ? 'text' : 'password');
+        });
+    })();
+</script>
+
+</body>
+</html>
