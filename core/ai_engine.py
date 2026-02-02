@@ -1,6 +1,27 @@
 from datetime import date
 from .models import Alert
 from .models import NotebookEntry
+def build_alert_evidence(alert):
+    return {
+        "id": alert.id,
+        "message": alert.message,
+        "priority": alert.priority,
+        "source": alert.source,
+        "created_at": alert.created_at,
+        "url": f"/dashboard/?focus=alert:{alert.id}"
+    }
+
+
+def build_notebook_evidence(entry):
+    return {
+        "id": entry.id,
+        "type": entry.entry_type,
+        "amount": entry.amount,
+        "description": entry.description,
+        "created_at": entry.created_at,
+        "url": f"/notebook/?focus=entry:{entry.id}"
+    }
+
 
 def generate_alert_intelligence(message):
     text = message.lower()
@@ -446,6 +467,12 @@ def generate_copilot_answer(question):
 
     intent = classify_question_intent(question)
     state = get_system_state_snapshot()
+    def respond(answer_text, confidence="MEDIUM"):
+     return {
+        "answer": answer_text,
+        "evidence": state,
+        "confidence": confidence,
+    }
 
     alerts = state["alerts"]
     financial = state["financial"]
@@ -474,47 +501,58 @@ def generate_copilot_answer(question):
             parts.append("Financial risk is elevated due to sustained overspending.")
 
         if not parts:
-            return (
-                "Operations are stable today. No critical alerts or financial risks "
-                "are currently detected."
-            )
+         return respond(
+        "Operations are stable today. No critical alerts or financial risks "
+        "are currently detected.",
+        confidence="HIGH",
+    )
 
-        return (
-            "Today is considered risky because "
-            + " ".join(parts)
-            + " Recommended action: resolve critical alerts first and review finances."
-        )
+
+        return respond(
+    "Today is considered risky because "
+    + " ".join(parts)
+    + " Recommended action: resolve critical alerts first and review finances.",
+    confidence="HIGH",
+)
+
 
     # ---------------- FINANCIAL REASONING ----------------
     if intent == "financial_reasoning":
-        return (
-            f"Financial analysis shows a risk level of '{financial['risk_level']}'. "
-            f"{financial['summary']} "
-            "This conclusion is based on recent notebook entries compared against "
-            "learned spending baselines."
-        )
+       return respond(
+    f"Financial analysis shows a risk level of '{financial['risk_level']}'. "
+    f"{financial['summary']} "
+    "This conclusion is based on recent notebook entries compared against "
+    "learned spending baselines.",
+    confidence="MEDIUM",
+)
+
 
     # ---------------- TREND REASONING ----------------
     if intent == "trend_reasoning":
-        return (
-            f"Trend analysis indicates a '{trends['risk_level']}' operational risk. "
-            f"{trends['summary']} "
-            "Recurring unresolved issues suggest systemic problems rather than isolated events."
-        )
+        return respond(
+    f"Trend analysis indicates a '{trends['risk_level']}' operational risk. "
+    f"{trends['summary']} "
+    "Recurring unresolved issues suggest systemic problems rather than isolated events.",
+    confidence="HIGH",
+)
+
 
     # ---------------- SYSTEM EXPLANATION ----------------
     if intent == "system_explanation":
-        return (
-            "This system reasons over live operational, financial, and trend data. "
-            "It prioritizes issues based on customer impact, urgency, recurrence, "
-            "and financial deviation from normal behavior."
-        )
+        return respond(
+    "This system reasons over live operational, financial, and trend data. "
+    "It prioritizes issues based on customer impact, urgency, recurrence, "
+    "and financial deviation from normal behavior.",
+    confidence="HIGH",
+)
+
 
     # ---------------- FALLBACK ----------------
-    return (
-        "I couldn't fully understand that question. "
-        "Try asking about today's risks, expenses, or recurring issues."
-    )
+    return respond(
+    "I couldn't fully understand that question. "
+    "Try asking about today's risks, expenses, or recurring issues.",
+    confidence="LOW",
+)
 
 def get_system_state_snapshot():
     """
@@ -530,20 +568,25 @@ def get_system_state_snapshot():
 
     last_24h = now() - timedelta(hours=24)
     recent_alerts = unresolved.filter(created_at__gte=last_24h)
+    recent_alert_objects = recent_alerts[:5]
 
     financial_trends = generate_financial_trends()
     alert_trends = generate_alert_trends()
 
     return {
         "alerts": {
-            "total_unresolved": unresolved.count(),
-            "critical_unresolved": critical.count(),
-            "medium_unresolved": medium.count(),
-            "recent_24h": recent_alerts.count(),
-            "recent_examples": list(
-                recent_alerts.values_list("message", flat=True)[:2]
-            ),
-        },
+    "total_unresolved": unresolved.count(),
+    "critical_unresolved": critical.count(),
+    "medium_unresolved": medium.count(),
+    "recent_24h": recent_alerts.count(),
+    "recent_examples": list(
+        recent_alerts.values_list("message", flat=True)[:2]
+    ),
+    "recent_alert_evidence": [
+        build_alert_evidence(a) for a in recent_alert_objects
+    ],
+},
+
         "financial": {
             "risk_level": financial_trends.get("financial_risk_level"),
             "summary": financial_trends.get("financial_trend_summary"),

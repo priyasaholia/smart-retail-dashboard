@@ -26,6 +26,64 @@ def home(request):
     return render(request, "home.html")
 
 
+def signup(request):
+    from .forms import UserSignupForm
+    from django.template.loader import render_to_string
+    from django.utils.http import urlsafe_base64_encode
+    from django.utils.encoding import force_bytes
+    from django.contrib.auth.tokens import default_token_generator
+    from django.core.mail import send_mail
+    from django.urls import reverse
+
+    if request.method == "POST":
+        form = UserSignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+
+            # Build activation link
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            activation_link = request.build_absolute_uri(
+                reverse('core:activate', kwargs={'uidb64': uid, 'token': token})
+            )
+
+            # Render and send activation email (console backend in dev)
+            subject = 'Activate your Retail Intelligence account'
+            message = render_to_string('account_activation_email.html', {
+                'user': user,
+                'activation_link': activation_link,
+            })
+            send_mail(subject, message, None, [user.email])
+
+            return render(request, "signup.html", {"form": form, "verification_sent": True})
+    else:
+        form = UserSignupForm()
+
+    return render(request, "signup.html", {"form": form})
+
+
+def activate(request, uidb64, token):
+    from django.utils.http import urlsafe_base64_decode
+    from django.utils.encoding import force_str
+    from django.contrib.auth.models import User
+    from django.contrib.auth.tokens import default_token_generator
+    from django.contrib.auth import login
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except Exception:
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return render(request, 'activation_complete.html')
+    else:
+        return render(request, 'activation_invalid.html')
+
+
 # ----------------------------
 # DASHBOARD (COMMAND CENTER)
 # ----------------------------
