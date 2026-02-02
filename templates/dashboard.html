@@ -775,6 +775,19 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(data => {
             const answerText = data.answer.answer;
             const confidence = data.answer.confidence;
+            const evidence = data.answer.evidence;
+            const alertsEvidence = evidence.alerts.recent_alert_evidence || [];
+let evidenceHtml = "";
+
+if (alertsEvidence.length > 0) {
+    evidenceHtml += "<div style='margin-top:12px; font-size:0.9rem; color:#4a5568;'><strong>Evidence used:</strong><ul>";
+
+    alertsEvidence.forEach(alert => {
+        evidenceHtml += `<li>${alert.message} (${alert.priority.toUpperCase()})</li>`;
+    });
+
+    evidenceHtml += "</ul></div>";
+}
 
             answerBox.innerHTML = `
                 <strong style="color: #596ce8;">✓ Answer:</strong><br>
@@ -784,6 +797,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div style="margin-top: 8px; font-size: 0.85rem; color: #718096;">
                     Confidence: ${confidence}
                 </div>
+                ${evidenceHtml}
+
             `;
         })
         .catch(() => {
