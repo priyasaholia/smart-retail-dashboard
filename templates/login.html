@@ -139,6 +139,20 @@
             color: #764ba2;
         }
 
+        .show-password {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 12px;
+        }
+
+        .show-password input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
         @media (max-width: 480px) {
             .login-box {
                 padding: 32px 24px;
@@ -160,9 +174,19 @@
 <div class="login-container">
     <div class="login-box">
         <div class="login-header">
-            <h2>Welcome Back</h2>
+            <div class="account-type-tabs" role="tablist" aria-label="Account type">
+                <button type="button" class="tab active" data-value="customer">Customer</button>
+                <button type="button" class="tab" data-value="retailer">Retailer</button>
+            </div>
+            <h2 style="margin-top:16px">Welcome Back</h2>
             <p>Sign in to your account</p>
         </div>
+
+        <style>
+            .account-type-tabs { display:flex; gap:8px; justify-content:center; margin-bottom:8px }
+            .account-type-tabs .tab { padding:8px 14px; border-radius:999px; border:1px solid #e6e6e6; background:#fafafa; cursor:pointer }
+            .account-type-tabs .tab.active { background: linear-gradient(90deg,#667eea,#764ba2); color:white; border-color:transparent }
+        </style>
 
         {% if form.errors %}
             <div class="error">
@@ -172,7 +196,8 @@
 
         <form method="post">
             {% csrf_token %}
-            
+            <input type="hidden" name="account_type" id="login-account-type" value="customer">
+
             <div class="form-group">
                 <label for="{{ form.username.id_for_label }}">Username</label>
                 {{ form.username }}
@@ -183,11 +208,39 @@
                 {{ form.password }}
             </div>
 
+            <div class="show-password">
+                <input type="checkbox" id="show-password" aria-controls="{{ form.password.id_for_label }}">
+                <label for="show-password">Show password</label>
+            </div>
+
             <button type="submit">Sign In</button>
         </form>
 
+        <script>
+            // account type tabs
+            (function(){
+                const tabs = document.querySelectorAll('.account-type-tabs .tab');
+                const hidden = document.getElementById('login-account-type');
+                tabs.forEach(t => t.addEventListener('click', function(){
+                    tabs.forEach(x => x.classList.remove('active'));
+                    this.classList.add('active');
+                    if (hidden) hidden.value = this.dataset.value || '';
+                }));
+            })();
+
+            // show password
+            (function() {
+                const checkbox = document.getElementById('show-password');
+                const passwordInput = document.querySelector('form input[type="password"]');
+                if (!checkbox || !passwordInput) return;
+                checkbox.addEventListener('change', function() {
+                    passwordInput.type = this.checked ? 'text' : 'password';
+                });
+            })();
+        </script>
+
         <div class="login-footer">
-            Don't have an account? <a href="#">Contact us</a>
+            Don't have an account? <a href="{% url 'core:signup' %}">Sign up</a>
         </div>
     </div>
 </div>
